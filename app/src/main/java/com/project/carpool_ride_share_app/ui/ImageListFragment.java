@@ -23,6 +23,9 @@ import java.util.ArrayList;
  * A simple {@link Fragment} subclass.
  * Use the {@link ImageListFragment#newInstance} factory method to
  * create an instance of this fragment.
+ *
+ * The list of images shown when selecting an avatar in profile.
+ *
  */
 public class ImageListFragment extends Fragment implements ImageListRecyclerAdapter.ImageListRecyclerClickListener{
 
@@ -57,6 +60,11 @@ public class ImageListFragment extends Fragment implements ImageListRecyclerAdap
 
         return view;
     }
+
+    /**
+     *  TODO: Add more images to be used as avatars ...
+     */
+
 
     private void getImageResouces(){
         mImageResources.add(R.drawable.stock_bg_login);

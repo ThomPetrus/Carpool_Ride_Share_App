@@ -4,6 +4,14 @@ import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
 
+/**
+ *  Credit goes to CodingWithMitch. The Chat portion of his open source tutorial was used as a basis for the
+ *  project.
+ *
+ *  Standard Java Object for each Chat Message
+ *  Consisting of User details, message and the Firebase servertimestamp.
+ */
+
 public class ChatMessage {
 
     private User user;

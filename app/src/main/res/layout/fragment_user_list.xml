@@ -1,17 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/White">
 
+    <!-- 50 / 50 split of map and a user list -->
 
-    <androidx.recyclerview.widget.RecyclerView
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/user_list_recycler_view">
+        android:orientation="vertical"
+        android:weightSum="100"
+        android:background="@color/White">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="50"
+            android:id="@+id/user_list_recycler_view">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="50"
+            android:id="@+id/map_container">
+
+            <com.google.android.gms.maps.MapView
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/user_list_map" />
+        </RelativeLayout>
 
 
-    </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
+</RelativeLayout>

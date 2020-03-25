@@ -1,11 +1,13 @@
 package com.project.carpool_ride_share_app.ui;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.InputType;
@@ -27,23 +29,30 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.project.carpool_ride_share_app.R;
+import com.project.carpool_ride_share_app.UserClient;
 import com.project.carpool_ride_share_app.adapters.ChatroomRecyclerAdapter;
 import com.project.carpool_ride_share_app.models.Chatroom;
 import com.project.carpool_ride_share_app.Constants;
+import com.project.carpool_ride_share_app.models.User;
+import com.project.carpool_ride_share_app.models.UserLocation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,15 +68,14 @@ import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_E
  * Basis is formed by open source tutorial credit to CodingWithMitch.
  * -----------------------------------------------------------------
  * COSC 341 - Car pool Application - Current Main Activity
- *
- * Annotated and updated by us.
- *
+ * <p>
+ * Updated, further developed and annotated by us.
+ * <p>
  * Once logged in create / enter / delete chat-rooms.
  * Also verifies that the user has granted the appropriate permissions
  * and has google services enabled.
  * -----------------------------------------------------------------
  */
-
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
@@ -86,7 +94,12 @@ public class MainActivity extends AppCompatActivity implements
     private RecyclerView mChatroomRecyclerView;
     private ListenerRegistration mChatroomEventListener;
     private FirebaseFirestore mDb;
+    private UserLocation userLocation;
+
+    // Used to verify permissions were granterd
     private boolean LocationPermissionsGranted = false;
+    // Used in finding User location
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +109,9 @@ public class MainActivity extends AppCompatActivity implements
         // Retrieve references
         mProgressBar = findViewById(R.id.progressBar);
         mChatroomRecyclerView = findViewById(R.id.chatrooms_recycler_view);
+
+        // Get location
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Set listeners for the creat and delete chatroom buttons
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
@@ -109,10 +125,105 @@ public class MainActivity extends AppCompatActivity implements
         initChatroomRecyclerView();
     }
 
+    /*
+     --------------------- Methods for retrieving current user location ----------------------------
+     */
+
+    // Step 1 - Create the UserLocation Object - See models directory
+    private void getUserDetails() {
+        if (userLocation == null) {
+            // Create new object
+            userLocation = new UserLocation();
+
+            // Query database for a document of this particular authorized user (firebaseauth)
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(FirebaseAuth.getInstance().getUid());
+
+            // Use reference to query Firebase
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "OnComplete: Retrieved the user details");
+
+                        // Create User Object and fill in the blanks for our UserLocation
+                        User user = task.getResult().toObject(User.class);
+                        userLocation.setUser(user);
+
+                        // Set User Client - see class for details
+                        ((UserClient) getApplicationContext()).setUser(user);
+                        getLastKnownLocation();
+                    }
+                }
+            });
+        } else {
+            getLastKnownLocation();
+        }
+    }
+
+
+    // Step 2 - Method actually used to retrieve last location - includes permission check
+    private void getLastKnownLocation() {
+
+        // Was not necessary initially for me to perform checks again, but can't hurt.
+        if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        // Using our Fused location object set listener and see if it was successful
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if (task.isSuccessful()) {
+
+                    // Use GeoPoint object to retrieve location
+                    Location loc = task.getResult();
+                    GeoPoint geoPoint = new GeoPoint(loc.getLatitude(), loc.getLongitude());
+
+                    // For debugging purposes
+                    Log.e(TAG, "onComplete: " + geoPoint.getLatitude());
+                    Log.e(TAG, "onComplete: " + geoPoint.getLongitude());
+
+                    userLocation.setGeoPoint(geoPoint);
+                    // Due to the @ServerTimestamp - a null argument timestamps it
+                    userLocation.setTimestamp(null);
+                    saveUserLocation();
+                }
+            }
+        });
+    }
+
+    // Step 3 -  Self explanatory
+    private void saveUserLocation() {
+        if (userLocation != null) {
+
+            // Get reference to document in db
+            DocumentReference locationRef = mDb.collection(getString(R.string.collection_user_locations))
+                    .document(FirebaseAuth.getInstance().getUid());
+
+            // add userlocation to db - log if successful
+            locationRef.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Successfully Inserted Location into db.");
+                    }
+                }
+            });
+        }
+    }
+
+    /*
+    ------------------------------- Permission and GPS checks --------------------------------------
+     */
+
     // Verify Google services / gps are enabled -- see below functions.
-    private boolean checkMapServices(){
-        if(isServicesOK()){
-            if(isMapsEnabled()){
+    private boolean checkMapServices() {
+        if (isServicesOK()) {
+            if (isMapsEnabled()) {
                 return true;
             }
         }
@@ -135,16 +246,17 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // Actually verifies the user has location and maps enabled
-    public boolean isMapsEnabled(){
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+    public boolean isMapsEnabled() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
             return false;
         }
         return true;
     }
 
+    // Whenever we successfully retrieve permissions - get chat rooms and last known location.
     private void getLocationPermission() {
         /*
          * Request location permission, so that we can get the location of the
@@ -156,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements
                 == PackageManager.PERMISSION_GRANTED) {
             LocationPermissionsGranted = true;
             getChatrooms();
+            getUserDetails();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -164,22 +277,21 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // Check google services and APIs / key is enabled.
-    public boolean isServicesOK(){
+    public boolean isServicesOK() {
         Log.d(TAG, "isServicesOK: checking google services version");
 
         int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(MainActivity.this);
 
-        if(available == SUCCESS){
+        if (available == SUCCESS) {
             //everything is fine and the user can make map requests
             Log.d(TAG, "isServicesOK: Google Play Services is working");
             return true;
-        }
-        else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
             //an error occurred but we can resolve it
             Log.d(TAG, "isServicesOK: an error occured but we can fix it");
             Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, available, ERROR_DIALOG_REQUEST);
             dialog.show();
-        }else{
+        } else {
             Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
@@ -207,10 +319,10 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(LocationPermissionsGranted){
+                if (LocationPermissionsGranted) {
                     getChatrooms();
-                }
-                else{
+                    getUserDetails();
+                } else {
                     getLocationPermission();
                 }
             }
@@ -218,11 +330,9 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    // Green bar up top
-    private void initSupportActionBar() {
-        setTitle("Chatrooms");
-    }
-
+    /*
+     ---------------- Retrieve, create and delete chat room methods ------------------------------
+     */
 
     // On click handlers for the create / delete chat-room
     @Override
@@ -241,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // Recycler view
+    // Recycler view initialization
     private void initChatroomRecyclerView() {
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
@@ -254,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
 
-        // Collection is like a relation - though firebase is noSQL - String resource is kind of unnecessary but hey
+        // Collection is like a relation - though firebase is noSQL
         CollectionReference chatroomsCollection = mDb.collection(getString(R.string.collection_chatrooms));
 
         mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -312,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onComplete(@NonNull Task<Void> task) {
                 hideDialog();
 
-                // Self explanatory
+                // if successful create navigate to the newly created chatroom
                 if (task.isSuccessful()) {
                     navChatroomActivity(chatroom);
                 } else {
@@ -372,13 +482,14 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // Get Chat rooms to display - and Verify user has granted permissions etc.
+    // Get Chat rooms to display - and Verify user has granted permissions / Last known location
     @Override
     protected void onResume() {
         super.onResume();
         getChatrooms();
-        if(checkMapServices()){
-            if(LocationPermissionsGranted){
+        getUserDetails();
+        if (checkMapServices()) {
+            if (LocationPermissionsGranted) {
                 getChatrooms();
             } else {
                 getLocationPermission();
@@ -391,50 +502,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onChatroomSelected(int position) {
         navChatroomActivity(mChatrooms.get(position));
     }
-
-    // Firebase handles the sign out, redirect to login activity
-    private void signOut() {
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-
-    // Options in action bar
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_sign_out: {
-                signOut();
-                return true;
-            }
-            case R.id.action_profile: {
-                startActivity(new Intent(this, ProfileActivity.class));
-                return true;
-            }
-            default: {
-                return super.onOptionsItemSelected(item);
-            }
-        }
-
-    }
-
-    private void showDialog() {
-        mProgressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void hideDialog() {
-        mProgressBar.setVisibility(View.GONE);
-    }
-
 
     // TODO  Write a method that checks if a rooms name is in use and then inform the user when trying to create it
 
@@ -515,7 +582,6 @@ public class MainActivity extends AppCompatActivity implements
                     Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
                     mChatroomRecyclerAdapter.notifyDataSetChanged();
                 }
-
             }
         });
         navBackToMainActivity();
@@ -526,5 +592,56 @@ public class MainActivity extends AppCompatActivity implements
         startActivity(intent);
     }
 
+
+    /*
+    ---------------- Additional methods for initialization / sign out etc ------------------------
+     */
+
+    // Green bar up top ..
+    private void initSupportActionBar() {
+        setTitle("Chatrooms");
+    }
+
+    // Firebase handles the sign out, redirect to login activity
+    private void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // Options in action bar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sign_out: {
+                signOut();
+                return true;
+            }
+            case R.id.action_profile: {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+
+    }
+
+    private void showDialog() {
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideDialog() {
+        mProgressBar.setVisibility(View.GONE);
+    }
 
 }

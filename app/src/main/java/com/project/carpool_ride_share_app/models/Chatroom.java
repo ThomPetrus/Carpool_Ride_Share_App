@@ -3,6 +3,15 @@ package com.project.carpool_ride_share_app.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ *  Credit goes to CodingWithMitch. The Chat portion of his open source tutorial was used as a basis for the
+ *  project.
+ *
+ *  Standard Java Object for each Chat Message
+ *  Consisting of User details, message and the Firebase servertimestamp.
+ */
+
+
 public class Chatroom implements Parcelable {
 
     private String title;

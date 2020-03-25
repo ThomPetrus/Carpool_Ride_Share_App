@@ -28,13 +28,22 @@ import com.project.carpool_ride_share_app.models.User;
 
 import static android.text.TextUtils.isEmpty;
 
+/**
+ * Login Activity
+ *
+ * Simple login based on users in database.
+ * Most of the heavy lifting here is done by the Firebase Database.
+ *
+ */
+
 public class LoginActivity extends AppCompatActivity implements
         View.OnClickListener
 {
 
+    // Used in debugging logs
     private static final String TAG = "LoginActivity";
 
-    //Firebase
+    //Firebase Listener
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     // widgets
@@ -45,6 +54,8 @@ public class LoginActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Get references to views
         mEmail = findViewById(R.id.email);
         mPassword = findViewById(R.id.password);
         mProgressBar = findViewById(R.id.progressBar);
@@ -56,58 +67,21 @@ public class LoginActivity extends AppCompatActivity implements
         hideSoftKeyboard();
     }
 
-
-    private void showDialog(){
-        mProgressBar.setVisibility(View.VISIBLE);
-
-    }
-
-    private void hideDialog(){
-        if(mProgressBar.getVisibility() == View.VISIBLE){
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    private void hideSoftKeyboard(){
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
-
     /*
-        ----------------------------- Firebase setup ---------------------------------
-     */
+       ----------------------------- Firebase setup ---------------------------------
+    */
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: started.");
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
+
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
                     Toast.makeText(LoginActivity.this, "Authenticated with: " + user.getEmail(), Toast.LENGTH_SHORT).show();
-
-
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                            .setTimestampsInSnapshotsEnabled(true)
-                            .build();
-                    db.setFirestoreSettings(settings);
-
-                    DocumentReference userRef = db.collection(getString(R.string.collection_users))
-                            .document(user.getUid());
-
-                    userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if(task.isSuccessful()){
-                                Log.d(TAG, "onComplete: successfully set the user client.");
-                                User user = task.getResult().toObject(User.class);
-                                UserClient uc = (UserClient)(getApplicationContext());
-                                uc.setUser(user);
-                                ((UserClient)(getApplicationContext())).setUser(user);
-                            }
-                        }
-                    });
 
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -121,20 +95,6 @@ public class LoginActivity extends AppCompatActivity implements
                 // ...
             }
         };
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
-        }
     }
 
     private void signIn(){
@@ -163,6 +123,37 @@ public class LoginActivity extends AppCompatActivity implements
             });
         }else{
             Toast.makeText(LoginActivity.this, "You didn't fill in all the fields.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private void showDialog(){
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideDialog(){
+        if(mProgressBar.getVisibility() == View.VISIBLE){
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void hideSoftKeyboard(){
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
     }
 

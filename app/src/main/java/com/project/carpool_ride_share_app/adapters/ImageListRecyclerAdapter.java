@@ -16,6 +16,11 @@ import com.project.carpool_ride_share_app.R;
 
 import java.util.ArrayList;
 
+/**
+ *  Credit goes to CodingWithMitch. The Chat portion of his open source tutorial was used as a basis for the
+ *  project.
+ */
+
 public class ImageListRecyclerAdapter extends RecyclerView.Adapter<ImageListRecyclerAdapter.ViewHolder>{
 
     private ArrayList<Integer> mImages = new ArrayList<>();

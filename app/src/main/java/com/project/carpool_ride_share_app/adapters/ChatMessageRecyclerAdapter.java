@@ -10,14 +10,19 @@ import com.project.carpool_ride_share_app.R;
 import com.project.carpool_ride_share_app.models.ChatMessage;
 import com.project.carpool_ride_share_app.models.User;
 import com.google.firebase.auth.FirebaseAuth;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
+/**
+ * Credit goes to CodingWithMitch. The Chat portion of his open source tutorial was used as a basis for the
+ * project.
+ */
 
-public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessageRecyclerAdapter.ViewHolder>{
+public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessageRecyclerAdapter.ViewHolder> {
 
     private ArrayList<ChatMessage> mMessages = new ArrayList<>();
     private ArrayList<User> mUsers = new ArrayList<>();
@@ -42,18 +47,15 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessage
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
 
-
-        if(FirebaseAuth.getInstance().getUid().equals(mMessages.get(position).getUser().getUser_id())){
-            ((ViewHolder)holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.green1));
-        }
-        else{
-            ((ViewHolder)holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.blue2));
+        if (FirebaseAuth.getInstance().getUid().equals(mMessages.get(position).getUser().getUser_id())) {
+            ((ViewHolder) holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.green1));
+        } else {
+            ((ViewHolder) holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.blue2));
         }
 
-        ((ViewHolder)holder).username.setText(mMessages.get(position).getUser().getUsername());
-        ((ViewHolder)holder).message.setText(mMessages.get(position).getMessage());
+        ((ViewHolder) holder).username.setText(mMessages.get(position).getUser().getUsername());
+        ((ViewHolder) holder).message.setText(mMessages.get(position).getMessage());
     }
-
 
 
     @Override
@@ -61,8 +63,7 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessage
         return mMessages.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder
-    {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         TextView message, username;
 
         public ViewHolder(View itemView) {
