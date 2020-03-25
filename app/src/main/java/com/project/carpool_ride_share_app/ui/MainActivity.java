@@ -386,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // Enter chatroom if clicked on
+    // Enter chatroom if clicked
     @Override
     public void onChatroomSelected(int position) {
         navChatroomActivity(mChatrooms.get(position));
