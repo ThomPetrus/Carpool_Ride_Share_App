@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "437456663203",
+    "firebase_url": "https://carpool-ride-share.firebaseio.com",
+    "project_id": "carpool-ride-share",
+    "storage_bucket": "carpool-ride-share.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437456663203:android:1a839a3b354cb8749f4516",
+        "android_client_info": {
+          "package_name": "com.project.carpool_ride_share_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437456663203-v2ftegqoa6036j4qm0ba4h25orvtdpaa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCNgT3Fl-_9xrbDPyaZJwSLYXfz8BnjNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437456663203-v2ftegqoa6036j4qm0ba4h25orvtdpaa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
