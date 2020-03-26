@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/White">
+    android:background="@color/bg">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="40dp"
-        >
+        android:layout_marginBottom="40dp">
 
     </RelativeLayout>
 
@@ -47,16 +45,16 @@
             android:background="@null"
             android:gravity="center_vertical"
             android:hint="new message..."
-            android:textColor="@color/Black"
+            android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
 
     </RelativeLayout>
 
     <FrameLayout
+        android:id="@+id/user_list_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/user_list_container">
+        android:layout_height="match_parent">
 
     </FrameLayout>
 

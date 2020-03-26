@@ -68,13 +68,11 @@ public class ImageListFragment extends Fragment implements ImageListRecyclerAdap
 
     private void getImageResouces(){
         mImageResources.add(R.drawable.stock_bg_login);
-        //mImageResources.add(R.drawable.cartman_cop);
-        //mImageResources.add(R.drawable.eric_cartman);
-        //mImageResources.add(R.drawable.ike);
-        //mImageResources.add(R.drawable.kyle);
-        //mImageResources.add(R.drawable.satan);
-        //mImageResources.add(R.drawable.chef);
-        //mImageResources.add(R.drawable.tweek);
+        mImageResources.add(R.drawable.yeet);
+        mImageResources.add(R.drawable.yaaah);
+        mImageResources.add(R.drawable.uhhm);
+        mImageResources.add(R.drawable.another);
+        mImageResources.add(R.drawable.horse);
     }
 
     private void initRecyclerview(){

@@ -41,5 +41,6 @@
 
     <color name="DarkGrey">#737373 </color>
 
-    <color name="Black">#000 </color>
+    <color name="Black">#47000000</color>
+    <color name="bg">#0D000000</color>
 </resources>

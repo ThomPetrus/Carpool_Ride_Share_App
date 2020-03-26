@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.ProfileActivity"
-    android:background="@color/White">
+    android:background="#5E000000"
+    tools:context=".ui.ProfileActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/image_choose_avatar"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:id="@+id/image_choose_avatar"
-            android:src="@drawable/stock_bg_login"
-            android:layout_centerInParent="true"/>
+            android:layout_centerInParent="true"
+            android:src="@drawable/stock_bg_login" />
 
         <TextView
             android:id="@+id/text_choose_avatar"
@@ -28,7 +27,7 @@
             android:layout_marginTop="10dp"
             android:text="@string/choose_avatar"
             android:textAlignment="center"
-            android:textColor="@color/linkBlue" />
+            android:textColor="#FDFDFD" />
 
         <TextView
             android:id="@+id/text_name"
@@ -42,15 +41,15 @@
             android:layout_marginEnd="100dp"
             android:text="@string/choose_avatar"
             android:textAlignment="center"
-            android:textColor="@color/linkBlue" />
+            android:textColor="#FFFFFF" />
 
     </RelativeLayout>
 
 
     <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/fragment_container">
+        android:layout_height="match_parent">
 
     </FrameLayout>
 

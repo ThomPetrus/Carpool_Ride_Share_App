@@ -9,16 +9,28 @@ public class User implements Parcelable{
     private String user_id;
     private String username;
     private String avatar;
+    private String role;
+    private String snippet;
 
-    public User(String email, String user_id, String username, String avatar) {
+    public User(String email, String user_id, String username, String avatar, String role, String snippet) {
         this.email = email;
         this.user_id = user_id;
         this.username = username;
         this.avatar = avatar;
+        this.role = role;
+        this.snippet = snippet;
     }
 
     public User() {
 
+    }
+
+    public String getSnippet() {
+        return snippet;
+    }
+
+    public void setSnippet(String snippet) {
+        this.snippet = snippet;
     }
 
     protected User(Parcel in) {
@@ -26,6 +38,8 @@ public class User implements Parcelable{
         user_id = in.readString();
         username = in.readString();
         avatar = in.readString();
+        role = in.readString();
+        snippet = in.readString();
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -83,6 +97,8 @@ public class User implements Parcelable{
                 ", user_id='" + user_id + '\'' +
                 ", username='" + username + '\'' +
                 ", avatar='" + avatar + '\'' +
+                ", role='" + role + '\'' +
+                ", snippet='" + snippet + '\'' +
                 '}';
     }
 
@@ -91,12 +107,22 @@ public class User implements Parcelable{
         return 0;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(email);
         dest.writeString(user_id);
         dest.writeString(username);
         dest.writeString(avatar);
+        dest.writeString(role);
+        dest.writeString(snippet);
     }
 }
 

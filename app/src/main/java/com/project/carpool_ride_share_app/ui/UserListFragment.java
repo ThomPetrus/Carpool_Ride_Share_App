@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,17 +17,26 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.maps.android.clustering.ClusterManager;
 import com.project.carpool_ride_share_app.R;
+import com.project.carpool_ride_share_app.UserClient;
 import com.project.carpool_ride_share_app.adapters.UserRecyclerAdapter;
+import com.project.carpool_ride_share_app.models.MarkerCluster;
 import com.project.carpool_ride_share_app.models.User;
+import com.project.carpool_ride_share_app.models.UserLocation;
+import com.project.carpool_ride_share_app.util.MyClusterManagerRenderer;
 
 import java.util.ArrayList;
 
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 import static com.project.carpool_ride_share_app.Constants.MAPVIEW_BUNDLE_KEY;
 
 /**
@@ -51,6 +61,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
     private UserRecyclerAdapter mUserRecyclerAdapter;
+    private ArrayList<UserLocation> userLocations = new ArrayList<>();
+    private GoogleMap googleMap;
+    private LatLngBounds mapBoundary;
+    private UserLocation userPos;
+
+    // refactor name ..
+    private ClusterManager<MarkerCluster> clusterManager;
+    private MyClusterManagerRenderer clusterManagerRenderer;
+    private ArrayList<MarkerCluster> clusterMarkers = new ArrayList<>();
 
 
     public static UserListFragment newInstance(){
@@ -62,6 +81,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         if(getArguments() != null){
             mUserList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
+            userLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
         }
     }
 
@@ -74,7 +94,30 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         initUserListRecyclerView();
         initGoogleMap(savedInstanceState);
 
+        setUserPos();
+
         return view;
+    }
+
+    private void setCamera(){
+
+        // set bounds .. + 0.1 coordinate from user location in each direction
+        double bottomBounds = userPos.getGeoPoint().getLatitude() - 0.1;
+        double leftBounds = userPos.getGeoPoint().getLongitude() - 0.1;
+        double topBounds = userPos.getGeoPoint().getLatitude() + 0.1;
+        double rightBounds = userPos.getGeoPoint().getLongitude() + 0.1;
+
+        mapBoundary = new LatLngBounds(new LatLng(bottomBounds, leftBounds), new LatLng(topBounds, rightBounds));
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
+    }
+
+    private void setUserPos(){
+        for(UserLocation userLoc : userLocations){
+            if(userLoc.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+                userPos = userLoc;
+            }
+        }
     }
 
     private void initGoogleMap(Bundle savedInstanceState){
@@ -142,6 +185,9 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         }
 
         map.setMyLocationEnabled(true);
+        googleMap = map;
+        setCamera();
+        addMapMarkers();
     }
 
     @Override
@@ -168,6 +214,65 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
+
+    /*
+        Loops through all users in chat room and creates a marker for them
+     */
+    private void addMapMarkers(){
+        if(googleMap != null){
+
+            if(clusterManager == null){
+                clusterManager = new ClusterManager<MarkerCluster>(getActivity().getApplicationContext(), googleMap);
+            }
+            if(clusterManagerRenderer == null){
+                clusterManagerRenderer = new MyClusterManagerRenderer(
+                        getActivity(),
+                        googleMap,
+                        clusterManager
+                );
+                clusterManager.setRenderer(clusterManagerRenderer);
+            }
+
+            for(UserLocation userLocation: userLocations){
+
+                Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeoPoint().toString());
+                try{
+                    String snippet = "";
+                    if(userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+                        Log.d(TAG, "MarkerSnippet: " + ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet());
+                        snippet = ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet();
+                    }
+                    else{
+                        Log.d(TAG, "MarkerSnippet: " + ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet());
+                        snippet = ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet();
+                    }
+
+                    int avatar = R.drawable.stock_bg_login; // set the default avatar
+                    try{
+                        avatar = Integer.parseInt(userLocation.getUser().getAvatar());
+                    }catch (NumberFormatException e){
+                        Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
+                    }
+                    MarkerCluster newClusterMarker = new MarkerCluster(
+                            new LatLng(userLocation.getGeoPoint().getLatitude(), userLocation.getGeoPoint().getLongitude()),
+                            userLocation.getUser().getUsername(),
+                            snippet,
+                            avatar,
+                            userLocation.getUser()
+                    );
+                    clusterManager.addItem(newClusterMarker);
+                    clusterMarkers.add(newClusterMarker);
+
+                }catch (NullPointerException e){
+                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage() );
+                }
+
+            }
+            clusterManager.cluster();
+
+            setCamera();
+        }
+    }
 
 
 }

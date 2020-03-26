@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.project.carpool_ride_share_app.R;
+import com.project.carpool_ride_share_app.models.UserLocation;
 import com.project.carpool_ride_share_app.ui.UserListFragment;
 import com.project.carpool_ride_share_app.UserClient;
 import com.project.carpool_ride_share_app.adapters.ChatMessageRecyclerAdapter;
@@ -65,7 +67,7 @@ public class ChatroomActivity extends AppCompatActivity implements
     private Set<String> mMessageIds = new HashSet<>();
     private ArrayList<User> mUserList = new ArrayList<>();
     private UserListFragment mUserListFragment;
-
+    private ArrayList<UserLocation> userLocations = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -182,12 +184,29 @@ public class ChatroomActivity extends AppCompatActivity implements
                             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                                 User user = doc.toObject(User.class);
                                 mUserList.add(user);
+                                getUserLocation(user);
                             }
 
                             Log.d(TAG, "onEvent: user list size: " + mUserList.size());
                         }
                     }
                 });
+    }
+
+    private void getUserLocation(User user) {
+        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations))
+                .document(user.getUser_id());
+
+        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()){
+                    if(task.getResult().toObject(UserLocation.class) != null){
+                        userLocations.add(task.getResult().toObject(UserLocation.class));
+                    }
+                }
+            }
+        });
     }
 
 
@@ -235,6 +254,7 @@ public class ChatroomActivity extends AppCompatActivity implements
         UserListFragment fragment = UserListFragment.newInstance();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList(getString(R.string.intent_user_list), mUserList);
+        bundle.putParcelableArrayList(getString(R.string.intent_user_locations), userLocations);
         fragment.setArguments(bundle);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

@@ -41,7 +41,11 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         ((ViewHolder)holder).username.setText(mUsers.get(position).getUsername());
-        ((ViewHolder)holder).email.setText(mUsers.get(position).getEmail());
+
+        // Changed it from email to just display the role of user / and snippet - should probably fix naming for rest.
+        String text= mUsers.get(position).getRole();
+        text += mUsers.get(position).getSnippet() != null ? " - "+ mUsers.get(position).getSnippet():"";
+        ((ViewHolder)holder).email.setText(text);
     }
 
     @Override

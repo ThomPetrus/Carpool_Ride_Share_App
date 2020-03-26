@@ -1,11 +1,14 @@
 package com.project.carpool_ride_share_app.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
 
-public class UserLocation {
+public class UserLocation implements Parcelable {
 
     private GeoPoint geoPoint;
     private @ServerTimestamp Date timestamp;
@@ -21,6 +24,22 @@ public class UserLocation {
         this.timestamp = timestamp;
         this.user = user;
     }
+
+    protected UserLocation(Parcel in) {
+        user = in.readParcelable(User.class.getClassLoader());
+    }
+
+    public static final Creator<UserLocation> CREATOR = new Creator<UserLocation>() {
+        @Override
+        public UserLocation createFromParcel(Parcel in) {
+            return new UserLocation(in);
+        }
+
+        @Override
+        public UserLocation[] newArray(int size) {
+            return new UserLocation[size];
+        }
+    };
 
     public GeoPoint getGeoPoint() {
         return geoPoint;
@@ -53,5 +72,15 @@ public class UserLocation {
                 ", timestamp=" + timestamp +
                 ", user=" + user +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(user, flags);
     }
 }

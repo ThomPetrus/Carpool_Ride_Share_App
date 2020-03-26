@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements
     private FirebaseFirestore mDb;
     private UserLocation userLocation;
 
+
     // Used to verify permissions were granterd
     private boolean LocationPermissionsGranted = false;
     // Used in finding User location
@@ -497,11 +498,66 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // Enter chatroom if clicked
+
+    /*
+        Enter chatroom if clicked
+        Also prompts the user to select their role in this chat room
+        as well as their snippet for their customer marker - can be refactored.
+     */
+
     @Override
-    public void onChatroomSelected(int position) {
-        navChatroomActivity(mChatrooms.get(position));
+    public void onChatroomSelected(final int position) {
+
+        // Title of alert
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Destination or Message :");
+
+        // Set the input type for snippet / message on map
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        // Create the confirm and cancel buttons with appropriate logic / toast
+        builder.setPositiveButton("DRIVER", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ((UserClient) getApplicationContext()).getUser().setRole(getString(R.string.driver));
+
+                String snippet = input.getText().toString();
+                Log.d(TAG, "onSnippetRead: " + snippet);
+                ((UserClient) getApplicationContext()).getUser().setSnippet(snippet);
+
+                Log.d(TAG,"onRoleSet: "  + ((UserClient) getApplicationContext()).getUser().getRole());
+                Log.d(TAG,"onRoleSet: "  + ((UserClient) getApplicationContext()).getUser().getSnippet());
+
+                navChatroomActivity(mChatrooms.get(position));
+            }
+        });
+        builder.setNegativeButton("PASSENGER", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ((UserClient) getApplicationContext()).getUser().setRole(getString(R.string.passenger));
+
+                String snippet = input.getText().toString();
+                Log.d(TAG, "onSnippetRead" + snippet);
+                ((UserClient) getApplicationContext()).getUser().setSnippet(snippet);
+
+                ((UserClient) getApplicationContext()).getUser().setSnippet(input.getText().toString());
+
+                Log.d(TAG,"onRoleSet: "  + ((UserClient) getApplicationContext()).getUser().getRole());
+                Log.d(TAG,"onRoleSet: "  + ((UserClient) getApplicationContext()).getUser().getSnippet());
+
+                navChatroomActivity(mChatrooms.get(position));
+            }
+        });
+
+        builder.show();
+
     }
+
+
+
+
 
     // TODO  Write a method that checks if a rooms name is in use and then inform the user when trying to create it
 

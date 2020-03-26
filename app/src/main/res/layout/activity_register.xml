@@ -1,85 +1,89 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:background="@color/bg">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
 
             <RelativeLayout
+                android:id="@+id/relLayout1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/relLayout1"
                 android:padding="20dp">
 
                 <TextView
+                    android:id="@+id/textEmailReg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/email_registration"
-                    android:textSize="25sp"
-                    android:textColor="@color/Black"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="30dp"
-                    android:id="@+id/textEmailReg"/>
+                    android:fontFamily="@font/stint_ultra_expanded"
+                    android:text="@string/email_registration"
+                    android:textColor="#47FFFFFF"
+                    android:textSize="25sp" />
 
 
                 <EditText
                     android:id="@+id/input_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@+id/textEmailReg"
                     android:layout_marginTop="30dp"
-                    android:inputType="textEmailAddress"
+                    android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/prompt_email"
-                    android:layout_below="@+id/textEmailReg"/>
+                    android:inputType="textEmailAddress" />
 
 
                 <EditText
                     android:id="@+id/input_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@+id/input_email"
                     android:layout_marginTop="20dp"
-                    android:inputType="textPassword"
+                    android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/password"
-                    android:layout_below="@+id/input_email"/>
+                    android:inputType="textPassword" />
 
                 <EditText
                     android:id="@+id/input_confirm_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@+id/input_password"
                     android:layout_marginTop="20dp"
-                    android:inputType="textPassword"
+                    android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/confirm_password"
-                    android:layout_below="@+id/input_password"/>
+                    android:inputType="textPassword" />
 
 
                 <Button
                     android:id="@+id/btn_register"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="35dp"
                     android:layout_below="@+id/input_confirm_password"
-                    android:text="@string/register"
-                    />
+                    android:layout_marginTop="35dp"
+                    android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+                    android:fontFamily="@font/stint_ultra_expanded"
+                    android:text="@string/register" />
 
             </RelativeLayout>
-
 
 
         </RelativeLayout>
     </ScrollView>
 
     <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="120dp"
-        android:visibility="invisible"/>
+        android:visibility="invisible" />
 
 </RelativeLayout>
