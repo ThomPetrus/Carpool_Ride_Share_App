@@ -26,7 +26,7 @@
                     android:layout_marginTop="30dp"
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:text="@string/email_registration"
-                    android:textColor="#47FFFFFF"
+                    android:textColor="@color/Black"
                     android:textSize="25sp" />
 
 
@@ -38,7 +38,8 @@
                     android:layout_marginTop="30dp"
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/prompt_email"
-                    android:inputType="textEmailAddress" />
+                    android:inputType="textEmailAddress"
+                    android:textColor="#000000" />
 
 
                 <EditText
@@ -49,7 +50,8 @@
                     android:layout_marginTop="20dp"
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/password"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    android:textColor="#000000" />
 
                 <EditText
                     android:id="@+id/input_confirm_password"
@@ -59,7 +61,8 @@
                     android:layout_marginTop="20dp"
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/confirm_password"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    android:textColor="#00020000" />
 
 
                 <Button

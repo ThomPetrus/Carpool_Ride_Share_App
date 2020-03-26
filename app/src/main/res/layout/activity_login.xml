@@ -27,7 +27,7 @@
                 android:hint="@string/prompt_email"
                 android:inputType="textEmailAddress"
                 android:maxLines="1"
-                android:textColor="#FFFFFF" />
+                android:textColor="@color/Black" />
 
 
             <EditText
@@ -39,7 +39,7 @@
                 android:hint="@string/password"
                 android:inputType="textPassword"
                 android:maxLines="1"
-                android:textColor="#FAF7F7" />
+                android:textColor="@color/Black" />
 
             <Button
                 android:id="@+id/email_sign_in_button"
@@ -66,7 +66,7 @@
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:gravity="center"
                     android:text="@string/register"
-                    android:textColor="#C9FFFFFF"
+                    android:textColor="@color/Black"
                     android:textSize="16sp" />
 
 
