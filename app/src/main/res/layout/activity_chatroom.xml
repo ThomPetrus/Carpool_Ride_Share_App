@@ -45,7 +45,7 @@
             android:background="@null"
             android:gravity="center_vertical"
             android:hint="new message..."
-            android:textColor="#FFFFFF"
+            android:textColor="@color/Black"
             android:textSize="14sp" />
 
 
