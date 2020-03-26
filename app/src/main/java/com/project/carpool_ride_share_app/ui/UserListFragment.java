@@ -1,6 +1,7 @@
 package com.project.carpool_ride_share_app.ui;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 
 import androidx.annotation.NonNull;
@@ -39,6 +41,7 @@ import com.project.carpool_ride_share_app.models.MarkerCluster;
 import com.project.carpool_ride_share_app.models.User;
 import com.project.carpool_ride_share_app.models.UserLocation;
 import com.project.carpool_ride_share_app.util.MyClusterManagerRenderer;
+import com.project.carpool_ride_share_app.util.ViewWeightAnimationWrapper;
 
 import java.util.ArrayList;
 
@@ -46,16 +49,15 @@ import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 import static com.project.carpool_ride_share_app.Constants.MAPVIEW_BUNDLE_KEY;
 
 /**
- *  COSC - 341 Carpool Ride Share Application
- *
- *  This is the basic map view for the application. It is a fragment view,
- *  being 50 / 50 map and userlist. All map related code is provided as open source
- *  by Google on GitHub - As this is a very standardized implementation
- *  we have not annotated that code for clarification.
- *
+ * COSC - 341 Carpool Ride Share Application
+ * <p>
+ * This is the basic map view for the application. It is a fragment view,
+ * being 50 / 50 map and userlist. All map related code is provided as open source
+ * by Google on GitHub - As this is a very standardized implementation
+ * we have not annotated that code for clarification.
  */
 
-public class UserListFragment extends Fragment implements OnMapReadyCallback {
+public class UserListFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
     private static final String TAG = "UserListFragment";
 
@@ -65,7 +67,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     //widgets
     private RecyclerView mUserListRecyclerView;
     private MapView mMapView;
-
+    private RelativeLayout mapContainer;
 
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
@@ -83,15 +85,21 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
 
+    // Map animation vars
+    private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
+    private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
+    private int mMapLayoutState = 0;
 
-    public static UserListFragment newInstance(){
+
+
+    public static UserListFragment newInstance() {
         return new UserListFragment();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getArguments() != null){
+        if (getArguments() != null) {
             mUserList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
             userLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
         }
@@ -100,9 +108,12 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view  = inflater.inflate(R.layout.fragment_user_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_user_list, container, false);
         mUserListRecyclerView = view.findViewById(R.id.user_list_recycler_view);
         mMapView = (MapView) view.findViewById(R.id.user_list_map);
+        mapContainer = view.findViewById(R.id.map_container);
+
+        view.findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
         initUserListRecyclerView();
         initGoogleMap(savedInstanceState);
 
@@ -113,7 +124,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
 
 
     // Sets the camera view on the map component to center on user location
-    private void setCamera(){
+    private void setCamera() {
 
         // set bounds .. + 0.1 coordinate from user location in each direction
         double bottomBounds = userPos.getGeoPoint().getLatitude() - 0.1;
@@ -126,15 +137,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
     }
 
-    private void setUserPos(){
-        for(UserLocation userLoc : userLocations){
-            if(userLoc.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+    private void setUserPos() {
+        for (UserLocation userLoc : userLocations) {
+            if (userLoc.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
                 userPos = userLoc;
             }
         }
     }
 
-    private void initGoogleMap(Bundle savedInstanceState){
+    private void initGoogleMap(Bundle savedInstanceState) {
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
         // objects or sub-Bundles.
@@ -184,6 +195,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     /**
      * Map is initialized with the latitude and longitude for Kelowna BC
      * User location is enabled as well. Emulator GPS coordinates are always set in AVD.
+     *
      * @param map
      */
 
@@ -195,7 +207,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -224,7 +236,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         mMapView.onLowMemory();
     }
 
-    private void initUserListRecyclerView(){
+    private void initUserListRecyclerView() {
         mUserRecyclerAdapter = new UserRecyclerAdapter(mUserList);
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -234,13 +246,13 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     /*
         Loops through all users in chat room and creates a marker for them
      */
-    private void addMapMarkers(){
-        if(googleMap != null){
+    private void addMapMarkers() {
+        if (googleMap != null) {
 
-            if(clusterManager == null){
+            if (clusterManager == null) {
                 clusterManager = new ClusterManager<MarkerCluster>(getActivity().getApplicationContext(), googleMap);
             }
-            if(clusterManagerRenderer == null){
+            if (clusterManagerRenderer == null) {
                 clusterManagerRenderer = new MyClusterManagerRenderer(
                         getActivity(),
                         googleMap,
@@ -249,24 +261,23 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 clusterManager.setRenderer(clusterManagerRenderer);
             }
 
-            for(UserLocation userLocation: userLocations){
+            for (UserLocation userLocation : userLocations) {
 
                 Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeoPoint().toString());
-                try{
+                try {
                     String snippet = "";
-                    if(userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+                    if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
                         Log.d(TAG, "MarkerSnippet: " + ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet());
                         snippet = ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet();
-                    }
-                    else{
+                    } else {
                         Log.d(TAG, "MarkerSnippet: " + ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet());
                         snippet = ((UserClient) getActivity().getApplicationContext()).getUser().getSnippet();
                     }
 
                     int avatar = R.drawable.stock_bg_login; // set the default avatar
-                    try{
+                    try {
                         avatar = Integer.parseInt(userLocation.getUser().getAvatar());
-                    }catch (NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
                     }
                     MarkerCluster newClusterMarker = new MarkerCluster(
@@ -279,8 +290,8 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                     clusterManager.addItem(newClusterMarker);
                     clusterMarkers.add(newClusterMarker);
 
-                }catch (NullPointerException e){
-                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage() );
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
                 }
 
             }
@@ -290,7 +301,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void startUserLocationsRunnable(){
+    private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
         mHandler.postDelayed(mRunnable = new Runnable() {
             @Override
@@ -301,15 +312,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         }, LOCATION_UPDATE_INTERVAL);
     }
 
-    private void stopLocationUpdates(){
+    private void stopLocationUpdates() {
         mHandler.removeCallbacks(mRunnable);
     }
 
-    private void retrieveUserLocations(){
+    private void retrieveUserLocations() {
         Log.d(TAG, "retrieveUserLocations: retrieving location of all users in the chatroom.");
 
-        try{
-            for(final MarkerCluster clusterMarker: clusterMarkers){
+        try {
+            for (final MarkerCluster clusterMarker : clusterMarkers) {
 
                 DocumentReference userLocationRef = FirebaseFirestore.getInstance()
                         .collection(getString(R.string.collection_user_locations))
@@ -318,7 +329,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
 
                             final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
 
@@ -345,10 +356,66 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                     }
                 });
             }
-        }catch (IllegalStateException e){
-            Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage() );
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
         }
 
+    }
+
+    private void expandMapAnimation() {
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                50,
+                100);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                50,
+                0);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+    }
+
+    private void contractMapAnimation() {
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                100,
+                50);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                0,
+                50);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_full_screen_map: {
+
+                if (mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
+                    mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
+                    expandMapAnimation();
+                } else if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED) {
+                    mMapLayoutState = MAP_LAYOUT_STATE_CONTRACTED;
+                    contractMapAnimation();
+                }
+                break;
+            }
+
+        }
     }
 
 }
