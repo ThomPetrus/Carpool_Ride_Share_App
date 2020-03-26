@@ -9,7 +9,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Actually only necessary for older versions but : -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:name=".UserClient"
         android:allowBackup="true"
@@ -45,6 +45,8 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
+        <service android:name=".services.LocationService" android:stopWithTask="true">
+        </service>
     </application>
 
 </manifest>
