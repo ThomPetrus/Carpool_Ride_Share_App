@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.project.carpool_ride_share_app">
-
     <!-- Required declaration for the google APIs -->
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -10,6 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Actually only necessary for older versions but : -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:name=".UserClient"
         android:allowBackup="true"
@@ -18,6 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".ui.ChooseRole"></activity>
         <activity android:name=".ui.SplashScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,13 +26,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.MainActivity"/>
-        <activity android:name=".ui.LoginActivity"/>
+        <activity android:name=".ui.MainActivity" />
+        <activity android:name=".ui.LoginActivity" />
         <activity android:name=".ui.RegisterActivity" />
         <activity android:name=".ui.ChatroomActivity" />
-        <activity android:name=".ui.ProfileActivity" />
-
-        <!-- Necessary meta data and lib for google APIs -->
+        <activity android:name=".ui.ProfileActivity" /> <!-- Necessary meta data and lib for google APIs -->
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
@@ -45,8 +44,10 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
-        <service android:name=".services.LocationService" android:stopWithTask="true">
-        </service>
+
+        <service
+            android:name=".services.LocationService"
+            android:stopWithTask="true"></service>
     </application>
 
 </manifest>
