@@ -20,3 +20,4 @@ Things to consider moving forward are:
 * Ensuring no identically named chatrooms 
 * directions to destination markers
 * DRIVER ability to indicate price 
+* set chatroom category and allow user to filter by category.
