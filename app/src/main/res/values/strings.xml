@@ -17,7 +17,7 @@
     <string name="auth_failed">Authentication Failed!</string>
     <string name="text_hello">Hello there!</string>
     <string name="create_chat_room">Create a Chat Room!</string>
-    <string name="remove_chat_room">Remove a Chat Room</string>
+    <string name="remove_chat_room">Remove Chatroom</string>
     <string name="choose_avatar">Choose an Avatar!</string>
     <string name="copyright">\u00A9 Copyright Group 4 Inc.</string>
 
