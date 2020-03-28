@@ -80,12 +80,12 @@ import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_A
 import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 /**
- *  COSC 341 - Car pool and ride sharing app - Main activity
- *
- *  Credit to CodingWithMitch for the base implementation of this project.
- *  Our group has refactored it, updated it to work with current android libraries and
- *  further developed it. The basic chat-room portion of the project is derived from his
- *  open source 2018 project and credit should be given where due.
+ * COSC 341 - Car pool and ride sharing app - Main activity
+ * <p>
+ * Credit to CodingWithMitch for the base implementation of this project.
+ * Our group has refactored it, updated it to work with current android libraries and
+ * further developed it. The basic chat-room portion of the project is derived from his
+ * open source 2018 project and credit should be given where due.
  */
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener,
@@ -130,6 +130,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
     private int mMapLayoutState = 0;
 
+    // Picked in the choose role activity
+    String userRole;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,6 +174,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         initSupportActionBar();
         initChatroomRecyclerView();
 
+        userRole = getIntent().getExtras().getString("role");
     }
 
     // All on click handlers for the activity
@@ -447,18 +450,21 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Title of alert
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Destination or Message :");
-
+        if (userRole.equalsIgnoreCase("driver")) {
+            builder.setTitle("Set your status:\n(i.e. Leaving in 15 minutes.)");
+        } else {
+            builder.setTitle("Set your status:\n(i.e. Need ride to UBCO.)");
+        }
         // Set the input type for snippet / message on map
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
 
         // Create the confirm and cancel buttons with appropriate logic / toast
-        builder.setPositiveButton("DRIVER", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("ENTER CHAT", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ((UserClient) getApplicationContext()).getUser().setRole(getString(R.string.driver));
+                ((UserClient) getApplicationContext()).getUser().setRole(userRole);
 
                 String snippet = input.getText().toString();
                 Log.d(TAG, "onSnippetRead: " + snippet);
@@ -470,21 +476,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 navChatroomActivity(mChatrooms.get(position));
             }
         });
-        builder.setNegativeButton("PASSENGER", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ((UserClient) getApplicationContext()).getUser().setRole(getString(R.string.passenger));
-
-                String snippet = input.getText().toString();
-                Log.d(TAG, "onSnippetRead" + snippet);
-                ((UserClient) getApplicationContext()).getUser().setSnippet(snippet);
-
-                ((UserClient) getApplicationContext()).getUser().setSnippet(input.getText().toString());
-
-                Log.d(TAG, "onRoleSet: " + ((UserClient) getApplicationContext()).getUser().getRole());
-                Log.d(TAG, "onRoleSet: " + ((UserClient) getApplicationContext()).getUser().getSnippet());
-
-                navChatroomActivity(mChatrooms.get(position));
+                dialog.cancel();
             }
         });
 

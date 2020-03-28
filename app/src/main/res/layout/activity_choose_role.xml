@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/stock_bg_login"
     tools:context=".ui.ChooseRole">
 
     <TextView
@@ -13,7 +14,9 @@
         android:layout_marginStart="65dp"
         android:layout_marginTop="150dp"
         android:layout_marginEnd="65dp"
-        android:text="Welcome Back!"
+        android:text="@string/wb"
+        android:textAlignment="center"
+        android:textColor="#D7FFFFFF"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -36,8 +39,10 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/driver"
+            android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:fontFamily="@font/stint_ultra_expanded"
             android:onClick="driver"
+            android:text="@string/driver"
             android:textSize="16sp" />
 
         <Button
@@ -45,8 +50,10 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Passenger"
+            android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:fontFamily="@font/stint_ultra_expanded"
             android:onClick="passenger"
+            android:text="@string/passenger"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -57,7 +64,8 @@
         android:layout_marginStart="150dp"
         android:layout_marginTop="50dp"
         android:layout_marginEnd="150dp"
-        android:text="Please select if you are a driver or passenger"
+        android:text="@string/passener_driver"
+        android:textColor="#D8FFFFFF"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

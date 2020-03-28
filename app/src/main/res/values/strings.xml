@@ -71,4 +71,6 @@
     <string name="action_leave_chatroom">Leave chatroom</string>
     <string name="action_chatroom_user_list">User list and Map</string>
     <string name="action_profile">Profile</string>
+    <string name="wb">Welcome Back!</string>
+    <string name="passener_driver">Please select if you are a Passenger or a Driver.</string>
 </resources>

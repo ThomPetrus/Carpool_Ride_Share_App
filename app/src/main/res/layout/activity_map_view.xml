@@ -1,31 +1,31 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/White">
+    android:background="@color/bg">
 
     <!-- 50 / 50 split of map and a user list -->
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/White"
         android:orientation="vertical"
-        android:weightSum="100"
-        android:background="@color/White">
+        android:weightSum="100">
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatrooms_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="30"
-            android:id="@+id/chatrooms_recycler_view">
+            android:background="@color/bg">
 
         </androidx.recyclerview.widget.RecyclerView>
 
         <RelativeLayout
+            android:id="@+id/map_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="60"
-            android:id="@+id/map_container">
+            android:layout_weight="60">
 
             <com.google.android.gms.maps.MapView
                 android:id="@+id/user_list_map"
@@ -33,16 +33,16 @@
                 android:layout_height="match_parent" />
 
             <ImageButton
+                android:id="@+id/btn_full_screen_map"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/ic_full_screen_black_24dp"
-                android:background="@color/White"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
                 android:layout_marginTop="10dp"
-                android:layout_marginRight="10dp"
                 android:layout_marginEnd="10dp"
-                android:id="@+id/btn_full_screen_map"/>
+                android:layout_marginRight="10dp"
+                android:background="@color/White"
+                android:src="@drawable/ic_full_screen_black_24dp" />
 
         </RelativeLayout>
 
@@ -52,6 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="3"
             android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:fontFamily="@font/stint_ultra_expanded"
             android:text="@string/action_create_chatroom" />
 
         <Button
@@ -60,6 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="3"
             android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:fontFamily="@font/stint_ultra_expanded"
             android:text="@string/remove_chat_room" />
 
         <Button
@@ -68,15 +70,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="4"
             android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:fontFamily="@font/stint_ultra_expanded"
             android:text="@string/find_me" />
 
     </LinearLayout>
 
     <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
         android:layout_centerInParent="true"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </RelativeLayout>
