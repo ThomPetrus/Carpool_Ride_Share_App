@@ -17,7 +17,7 @@ public class ChooseRole extends AppCompatActivity {
     }
 
     public void driver(View view) {
-        Intent main = new Intent(ChooseRole.this, MainActivity.class);
+        Intent main = new Intent(ChooseRole.this, MapViewActivity.class);
         main.putExtra("role", "driver");
         startActivity(main);
     }

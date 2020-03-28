@@ -36,6 +36,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -599,16 +601,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
                     // Use GeoPoint object to retrieve location
                     Location loc = task.getResult();
-                    GeoPoint geoPoint = new GeoPoint(loc.getLatitude(), loc.getLongitude());
+                    if(loc!=null) {
+                        GeoPoint geoPoint = new GeoPoint(loc.getLatitude(), loc.getLongitude());
 
-                    // For debugging purposes
-                    Log.e(TAG, "onComplete: " + geoPoint.getLatitude());
-                    Log.e(TAG, "onComplete: " + geoPoint.getLongitude());
+                        // For debugging purposes
+                        Log.e(TAG, "onComplete: " + geoPoint.getLatitude());
+                        Log.e(TAG, "onComplete: " + geoPoint.getLongitude());
 
-                    userLocation.setGeoPoint(geoPoint);
-                    // Due to the @ServerTimestamp - a null argument timestamps it
-                    userLocation.setTimestamp(null);
-                    saveUserLocation();
+                        userLocation.setGeoPoint(geoPoint);
+                        // Due to the @ServerTimestamp - a null argument timestamps it
+                        userLocation.setTimestamp(null);
+                        saveUserLocation();
+                    }
                 }
             }
         });
@@ -791,6 +795,33 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // Options in action bar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sign_out: {
+                signOut();
+                return true;
+            }
+            case R.id.action_profile: {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+
+    }
+
+   
 
 }
 
