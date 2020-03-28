@@ -18,7 +18,7 @@ Finished off the Map component of the base application. We have added several fe
 The prototype is taking form, we took what we learned from open source and have further developed our app to its current state. We now have a splash screen followed by role selection (Driver / Passenger). From there the user is taken to the main map view where the chatrooms / destinations are displayed upon clicking the show chatrooms button. The user can now create chat rooms by clicking anywhere on the map and naming the chatroom. There is the option to expand the map to full screen (+ buttons) as well. The user can also find themselves on the map with a click of a button. Once in a chatroom the user can send messages to the other members of the chatroom, and view the map where all the users' location is displayed.
 
 Things to consider moving forward are:
-
+* OPENING the chatrooms upon clicking the corresponding marker
 * Limiting the naming of the chat rooms to dates / destinations
 * Ensuring no identically named chatrooms 
 * directions to destination markers / selected users in a chatroom
