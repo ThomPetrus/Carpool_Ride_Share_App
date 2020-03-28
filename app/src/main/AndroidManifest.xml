@@ -18,7 +18,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.ChooseRole"></activity>
+        <activity android:name=".ui.MapsTestingActivity"></activity>
+        <activity android:name=".ui.ChooseRole" />
         <activity android:name=".ui.SplashScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -47,7 +48,7 @@
 
         <service
             android:name=".services.LocationService"
-            android:stopWithTask="true"></service>
+            android:stopWithTask="true" />
     </application>
 
 </manifest>
