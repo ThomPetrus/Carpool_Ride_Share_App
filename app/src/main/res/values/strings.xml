@@ -73,4 +73,5 @@
     <string name="action_profile">Profile</string>
     <string name="wb">Welcome Back!</string>
     <string name="passener_driver">Please select if you are a Passenger or a Driver.</string>
+    <string name="show_chatrooms">Show Chatrooms</string>
 </resources>

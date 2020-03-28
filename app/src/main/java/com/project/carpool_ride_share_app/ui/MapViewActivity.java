@@ -27,7 +27,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -99,7 +98,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private static final double NO_COORDS = 0;
 
 
-
     // Chatroom related variables
     private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
@@ -132,6 +130,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
     private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
     private int mMapLayoutState = 0;
+
+    // Markers
+    private static final int MARKER_STATE_VISIBLE = 1;
+    private static final int MARKER_STATE_NOT_VISIBLE = 0;
+    private int markerState = 0;
+
 
     // Picked in the choose role activity
     String userRole;
@@ -173,7 +177,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Set listeners for the creat and delete chatroom buttons
-        findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
+        findViewById(R.id.btn_show_chatrooms).setOnClickListener(this);
         findViewById(R.id.btn_delete_chatroom).setOnClickListener(this);
         findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
         findViewById(R.id.btn_find_me).setOnClickListener(this);
@@ -184,10 +188,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         initChatroomRecyclerView();
 
         userRole = getIntent().getExtras().getString("role");
-
-        // markers
-        retrieveChatroomLocations();
-        addMapMarkers();
     }
 
     // All on click handlers for the activity
@@ -195,8 +195,17 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     public void onClick(View view) {
         switch (view.getId()) {
 
-            case R.id.fab_create_chatroom: {
-                newChatroomDialog(new LatLng(NO_COORDS, NO_COORDS));
+            case R.id.btn_show_chatrooms: {
+                // Change map animation depending on its current state
+                if (markerState == MARKER_STATE_VISIBLE) {
+                    markerState = MARKER_STATE_NOT_VISIBLE;
+                    clusterManager.cluster();
+                } else if (markerState == MARKER_STATE_NOT_VISIBLE) {
+                    markerState = MARKER_STATE_VISIBLE;
+                    retrieveChatroomLocations();
+                    addMapMarkers();
+                }
+
             }
             break;
 
@@ -307,14 +316,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         super.onResume();
         mMapView.onResume();
         getChatrooms();
-        retrieveChatroomLocations();
-        addMapMarkers();
         getUserDetails();
         if (checkMapServices()) {
             if (LocationPermissionsGranted) {
                 getChatrooms();
-                retrieveChatroomLocations();
-                addMapMarkers();
             } else {
                 getLocationPermission();
             }
@@ -344,16 +349,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 newChatroomDialog(point);
             }
         });
-
-        addMapMarkers();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         mMapView.onStart();
-        retrieveChatroomLocations();
-        addMapMarkers();
     }
 
     @Override
@@ -393,6 +394,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         chatroom.setTitle(chatroomName);
         chatroom.setLatitude(point.latitude);
         chatroom.setLongitude(point.longitude);
+
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
@@ -811,7 +813,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         retrieveUserLocation();
 
-        if (userPosCamera != null) {
+        if (userPosCamera != null && googleMap != null) {
             // set bounds .. + 0.1 coordinate from user location in each direction
             double bottomBounds = userPosCamera.getGeoPoint().getLatitude() - 0.1;
             double leftBounds = userPosCamera.getGeoPoint().getLongitude() - 0.1;
@@ -938,9 +940,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 clusterManager.setRenderer(clusterManagerRenderer);
             }
 
-            Log.d(TAG, "Number of chatrooms "+ mChatrooms.size());
-            for (Chatroom chatroom  : mChatrooms) {
-                Log.d(TAG, "addMapMarkers - ChatRoom : location: " + chatroom.getLatitude()+ ", " + chatroom.getLongitude());
+            Log.d(TAG, "Number of chatrooms " + mChatrooms.size());
+            for (Chatroom chatroom : mChatrooms) {
+                Log.d(TAG, "addMapMarkers - ChatRoom : location: " + chatroom.getLatitude() + ", " + chatroom.getLongitude());
 
                 try {
 
@@ -974,7 +976,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
             clusterManager.cluster();
 
-            setNewCamera();
         }
     }
 
@@ -987,7 +988,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         try {
 
             Log.d(TAG, "number of clusters : " + clusterMarkers.size());
-            for (MarkerCluster clusterMarker : clusterMarkers) {
+            for (final MarkerCluster clusterMarker : clusterMarkers) {
 
 
                 Log.d(TAG, "Clusters : " + clusterMarker.getChatroom().getTitle());
@@ -1005,6 +1006,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                             // update the location
                             for (int i = 0; i < clusterMarkers.size(); i++) {
                                 try {
+
+                                    //
+                                    if (clusterMarkers.get(i) == null) {
+                                        break;
+                                    }
 
                                     if (clusterMarkers.get(i).getChatroom().getChatroom_id().equals(current.getChatroom_id())) {
 
@@ -1031,6 +1037,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
         }
     }
-}
 
+}
 

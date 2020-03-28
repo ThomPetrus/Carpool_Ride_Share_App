@@ -47,13 +47,13 @@
         </RelativeLayout>
 
         <Button
-            android:id="@+id/fab_create_chatroom"
+            android:id="@+id/btn_show_chatrooms"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
             android:fontFamily="@font/stint_ultra_expanded"
-            android:text="@string/action_create_chatroom" />
+            android:text="@string/show_chatrooms" />
 
         <Button
             android:id="@+id/btn_delete_chatroom"
