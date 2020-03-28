@@ -9,9 +9,9 @@ import android.view.View;
 import com.project.carpool_ride_share_app.R;
 
 /**
- *  COSC 341 - Carpool Ride Sharing Application
- *
- *  Cheeky little splash screen. Nothing else is styled yet.
+ * COSC 341 - Carpool Ride Sharing Application
+ * <p>
+ * Cheeky little splash screen. Nothing else is styled yet.
  */
 
 public class SplashScreenActivity extends AppCompatActivity {
