@@ -8,6 +8,7 @@
     <!-- 50 / 50 split of map and a user list -->
 
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -29,9 +30,10 @@
             android:id="@+id/map_container">
 
             <com.google.android.gms.maps.MapView
-                android:id="@+id/user_list_map"
+                xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:id="@+id/user_list_map" />
 
             <ImageButton
                 android:layout_width="35dp"

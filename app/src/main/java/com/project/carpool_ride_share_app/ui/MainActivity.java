@@ -1,7 +1,6 @@
 package com.project.carpool_ride_share_app.ui;
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -16,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -54,7 +55,6 @@ import com.project.carpool_ride_share_app.models.Chatroom;
 import com.project.carpool_ride_share_app.Constants;
 import com.project.carpool_ride_share_app.models.User;
 import com.project.carpool_ride_share_app.models.UserLocation;
-import com.project.carpool_ride_share_app.services.LocationService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -194,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements
                     // Due to the @ServerTimestamp - a null argument timestamps it
                     userLocation.setTimestamp(null);
                     saveUserLocation();
-                    startLocationService();
                 }
             }
         });
@@ -219,33 +218,6 @@ public class MainActivity extends AppCompatActivity implements
             });
         }
     }
-
-    private void startLocationService(){
-        if(!isLocationServiceRunning()){
-            Intent serviceIntent = new Intent(this, LocationService.class);
-//        this.startService(serviceIntent);
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
-
-                MainActivity.this.startForegroundService(serviceIntent);
-            }else{
-                startService(serviceIntent);
-            }
-        }
-    }
-
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("com.project.carpool_ride_share_app.services.LocationService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
-        }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
-        return false;
-    }
-
 
     /*
     ------------------------------- Permission and GPS checks --------------------------------------
@@ -587,6 +559,8 @@ public class MainActivity extends AppCompatActivity implements
 
 
 
+
+
     // TODO  Write a method that checks if a rooms name is in use and then inform the user when trying to create it
 
     // I wrote these to delete the chat rooms - They are basically the same in function as the add methods above.
@@ -727,5 +701,8 @@ public class MainActivity extends AppCompatActivity implements
     private void hideDialog() {
         mProgressBar.setVisibility(View.GONE);
     }
+
+
+
 
 }

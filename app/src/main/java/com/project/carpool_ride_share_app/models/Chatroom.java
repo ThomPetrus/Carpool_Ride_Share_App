@@ -12,15 +12,24 @@ import android.os.Parcelable;
  */
 
 
-public class Chatroom implements Parcelable {
+public class Chatroom extends User implements Parcelable {
 
     private String title;
     private String chatroom_id;
+    private String avatar;
 
+    public String getAvatar() {
+        return avatar;
+    }
 
-    public Chatroom(String title, String chatroom_id) {
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public Chatroom(String title, String chatroom_id, String avatar) {
         this.title = title;
         this.chatroom_id = chatroom_id;
+        this.avatar = avatar;
     }
 
     public Chatroom() {

@@ -23,7 +23,7 @@ public class ChooseRole extends AppCompatActivity {
     }
 
     public void passenger(View view) {
-        Intent main = new Intent(ChooseRole.this, MainActivity.class);
+        Intent main = new Intent(ChooseRole.this, MapViewActivity.class);
         main.putExtra("role", "passenger");
         startActivity(main);
     }
