@@ -200,28 +200,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         switch (view.getId()) {
 
             case R.id.btn_show_chatrooms: {
-
-                /**
-                 *  Such a bunch of spaghetti with a band-aid, but is what it is at this point.
-                 *
-                 *  Removing the button once it has been clicked fixes the bug.
-                 *  There's a nullpointerexception that occurs internally when
-                 *  returning to the page in the ClusterRenderer.onClusterItemUpdated
-                 *  method, it tries to compare previous state of some item to the current clusters
-                 *  presumably. I don't know how to prevent this. Had a bit of a deseperation move trying
-                 *  to reset it at every step of the way "clusterReset()". This can probably be removed.
-                 *
-                 */
-
-                if (markerState == MARKER_STATE_VISIBLE) {
-                    markerState = MARKER_STATE_NOT_VISIBLE;
-                    view.setVisibility(View.GONE);
-                } else if (markerState == MARKER_STATE_NOT_VISIBLE) {
-                    markerState = MARKER_STATE_VISIBLE;
-                    retrieveChatroomLocations();
-                    addMapMarkers();
-                }
-
+               showChatroomHelper(view);
             }
             break;
 
@@ -246,6 +225,54 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
         }
     }
+
+    public void showChatroomHelper(View view){
+
+        /**
+         *  Such a bunch of spaghetti with a band-aid, but is what it is at this point.
+         *
+         *  Removing the button once it has been clicked fixes the bug.
+         *  There's a nullpointerexception that occurs internally when
+         *  returning to the page, after adding a new chatroom or *sometimes* when returning from
+         *  a chatroom and then pressing the show chatrooms button.
+         *  It occurs in the ClusterRenderer.onClusterItemUpdated method...
+         *  I guess it tries to compare previous state of some items to the current clusters
+         *  and messes it up. I don't know how to prevent this. Went for a bit of a deseperation move trying
+         *  to reset it at every step of the way "clusterReset()". Which can probably be removed now.
+         *
+         */
+
+        if (markerState == MARKER_STATE_VISIBLE) {
+            markerState = MARKER_STATE_NOT_VISIBLE;
+            // remove button
+            view.setVisibility(View.GONE);
+
+            //set map weight to occupy newly available screen space
+            if(mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
+                ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+                ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                        "weight",
+                        50,
+                        52);
+                mapAnimation.setDuration(350);
+                mapAnimation.start();
+            } else {
+                ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+                ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                        "weight",
+                        100,
+                        100);
+                mapAnimation.setDuration(350);
+                mapAnimation.start();
+            }
+        } else if (markerState == MARKER_STATE_NOT_VISIBLE) {
+            markerState = MARKER_STATE_VISIBLE;
+            retrieveChatroomLocations();
+            addMapMarkers();
+        }
+
+    }
+
 
 
     // Green bar up top ..
@@ -419,26 +446,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         chatroom.setLatitude(point.latitude);
         chatroom.setLongitude(point.longitude);
         mChatrooms.add(chatroom);
-
-        clusterReset();
-
-
-        MarkerCluster newClusterMarker = new MarkerCluster(
-                new LatLng(chatroom.getLatitude(), chatroom.getLongitude()),
-                chatroom.getTitle(),
-                chatroom.getTitle(),
-                R.drawable.chat,
-                chatroom
-        );
-
-        clusterManager.addItem(newClusterMarker);
-        clusterMarkers.add(newClusterMarker);
-
-
-
-
-
-
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
@@ -930,14 +937,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 "weight",
                 50,
                 100);
-        mapAnimation.setDuration(800);
+        mapAnimation.setDuration(500);
 
         ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mChatroomRecyclerView);
         ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
                 "weight",
                 50,
                 0);
-        recyclerAnimation.setDuration(800);
+        recyclerAnimation.setDuration(500);
 
         recyclerAnimation.start();
         mapAnimation.start();

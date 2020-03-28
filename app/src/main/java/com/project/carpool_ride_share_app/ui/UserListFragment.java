@@ -368,14 +368,14 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
                 "weight",
                 50,
                 100);
-        mapAnimation.setDuration(800);
+        mapAnimation.setDuration(500);
 
         ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
         ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
                 "weight",
                 50,
                 0);
-        recyclerAnimation.setDuration(800);
+        recyclerAnimation.setDuration(500);
 
         recyclerAnimation.start();
         mapAnimation.start();
