@@ -13,6 +13,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.Manifest;
@@ -58,6 +59,8 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.project.carpool_ride_share_app.R;
 import com.project.carpool_ride_share_app.UserClient;
@@ -81,18 +84,15 @@ import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_E
 
 /**
  * COSC 341 - Car pool and ride sharing app - Main activity
- * <p>
  * Credit to CodingWithMitch for the base implementation of this project.
  * Our group has refactored it, updated it to work with current android libraries and
  * further developed it. The basic chat-room portion of the project is derived from his
  * open source 2018 project and credit should be given where due.
- *
  * This is in need of a lot of refactoring but time likely won't allow it.
- *
  */
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener,
-        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener {
+        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener, ClusterManager.OnClusterItemClickListener<MarkerCluster> {
     private MapView mMapView;
 
     // Logs
@@ -200,7 +200,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         switch (view.getId()) {
 
             case R.id.btn_show_chatrooms: {
-               showChatroomHelper(view);
+                showChatroomHelper(view);
             }
             break;
 
@@ -226,7 +226,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    public void showChatroomHelper(View view){
+    public void showChatroomHelper(View view) {
 
         /**
          *  Such a bunch of spaghetti with a band-aid, but is what it is at this point.
@@ -248,7 +248,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             view.setVisibility(View.GONE);
 
             //set map weight to occupy newly available screen space
-            if(mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
+            if (mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
                 ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
                 ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
                         "weight",
@@ -272,7 +272,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
 
     }
-
 
 
     // Green bar up top ..
@@ -337,7 +336,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
-        // call here ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 
 
@@ -385,6 +383,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         map.setMyLocationEnabled(true);
         googleMap = map;
 
+        googleMap.setOnMarkerClickListener(clusterManager);
+
         // Gets the coordinates of where the user clicks. Currently only outputs the coords to sout only.
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -395,6 +395,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         });
 
         clusterReset();
+
     }
 
     @Override
@@ -980,6 +981,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
             if (clusterManager == null) {
                 clusterManager = new ClusterManager<MarkerCluster>(this, googleMap);
+                googleMap.setOnMarkerClickListener(clusterManager);
             }
 
             if (clusterManagerRenderer == null) {
@@ -1089,13 +1091,35 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    public void clusterReset(){
-        if(clusterManager!=null){
+    public void clusterReset() {
+        if (clusterManager != null) {
             clusterManager.clearItems();
             addMapMarkers();
             clusterManager.cluster();
+            googleMap.setOnMarkerClickListener(clusterManager);
         }
     }
 
+
+    @Override
+    public boolean onClusterItemClick(MarkerCluster item) {
+        Log.d(TAG, "Marker clicked");
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MapViewActivity.this);
+        builder.setMessage("Enter Chatroom?")
+                .setCancelable(true)
+                .setPositiveButton("Enter", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+        return false;
+    }
 }
 

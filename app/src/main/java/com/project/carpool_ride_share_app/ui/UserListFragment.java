@@ -26,6 +26,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -57,7 +58,7 @@ import static com.project.carpool_ride_share_app.Constants.MAPVIEW_BUNDLE_KEY;
  * we have not annotated that code for clarification.
  */
 
-public class UserListFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
+public class UserListFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener{
 
     private static final String TAG = "UserListFragment";
 
@@ -417,5 +418,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
         }
     }
+
 
 }
