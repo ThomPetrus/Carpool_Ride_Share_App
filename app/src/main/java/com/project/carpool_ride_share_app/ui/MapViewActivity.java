@@ -86,6 +86,9 @@ import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_E
  * Our group has refactored it, updated it to work with current android libraries and
  * further developed it. The basic chat-room portion of the project is derived from his
  * open source 2018 project and credit should be given where due.
+ *
+ * This is in need of a lot of refactoring but time likely won't allow it.
+ *
  */
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener,
@@ -188,6 +191,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         initChatroomRecyclerView();
 
         userRole = getIntent().getExtras().getString("role");
+        clusterReset();
     }
 
     // All on click handlers for the activity
@@ -196,10 +200,22 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         switch (view.getId()) {
 
             case R.id.btn_show_chatrooms: {
-                // Change map animation depending on its current state
+
+                /**
+                 *  Such a bunch of spaghetti with a band-aid, but is what it is at this point.
+                 *
+                 *  Removing the button once it has been clicked fixes the bug.
+                 *  There's a nullpointerexception that occurs internally when
+                 *  returning to the page in the ClusterRenderer.onClusterItemUpdated
+                 *  method, it tries to compare previous state of some item to the current clusters
+                 *  presumably. I don't know how to prevent this. Had a bit of a deseperation move trying
+                 *  to reset it at every step of the way "clusterReset()". This can probably be removed.
+                 *
+                 */
+
                 if (markerState == MARKER_STATE_VISIBLE) {
                     markerState = MARKER_STATE_NOT_VISIBLE;
-                    clusterManager.cluster();
+                    view.setVisibility(View.GONE);
                 } else if (markerState == MARKER_STATE_NOT_VISIBLE) {
                     markerState = MARKER_STATE_VISIBLE;
                     retrieveChatroomLocations();
@@ -317,6 +333,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mMapView.onResume();
         getChatrooms();
         getUserDetails();
+        clusterReset();
         if (checkMapServices()) {
             if (LocationPermissionsGranted) {
                 getChatrooms();
@@ -349,28 +366,35 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 newChatroomDialog(point);
             }
         });
+
+        clusterReset();
     }
 
     @Override
     protected void onStart() {
+        clusterReset();
         super.onStart();
         mMapView.onStart();
     }
 
     @Override
     protected void onStop() {
+        clusterReset();
         super.onStop();
         mMapView.onStop();
     }
 
     @Override
     protected void onPause() {
+        clusterReset();
         mMapView.onPause();
         super.onPause();
+
     }
 
     @Override
     protected void onDestroy() {
+        clusterReset();
         mMapView.onDestroy();
         if (mChatroomEventListener != null) {
             mChatroomEventListener.remove();
@@ -394,6 +418,26 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         chatroom.setTitle(chatroomName);
         chatroom.setLatitude(point.latitude);
         chatroom.setLongitude(point.longitude);
+        mChatrooms.add(chatroom);
+
+        clusterReset();
+
+
+        MarkerCluster newClusterMarker = new MarkerCluster(
+                new LatLng(chatroom.getLatitude(), chatroom.getLongitude()),
+                chatroom.getTitle(),
+                chatroom.getTitle(),
+                R.drawable.chat,
+                chatroom
+        );
+
+        clusterManager.addItem(newClusterMarker);
+        clusterMarkers.add(newClusterMarker);
+
+
+
+
+
 
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
@@ -1035,6 +1079,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
         } catch (IllegalStateException e) {
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
+        }
+    }
+
+    public void clusterReset(){
+        if(clusterManager!=null){
+            clusterManager.clearItems();
+            addMapMarkers();
+            clusterManager.cluster();
         }
     }
 
