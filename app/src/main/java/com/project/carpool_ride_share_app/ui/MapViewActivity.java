@@ -101,6 +101,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private ArrayList<UserLocation> userLocations = new ArrayList<>();
     private LatLngBounds mapBoundary;
     private UserLocation userPos;
+    protected UserLocation userPosCamera;
 
 
     // Used to verify permissions were granterd
@@ -113,6 +114,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
+
+        // retrieve instance of database
+        mDb = FirebaseFirestore.getInstance();
+
+        // Wip
+        getUserDetails();
+        retrieveUserLocation();
 
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
@@ -132,19 +140,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // Get location
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-
-
-
-
-        // Wip
-        retrieveUserLocation();
-
         // Set listeners for the creat and delete chatroom buttons
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
         findViewById(R.id.btn_delete_chatroom).setOnClickListener(this);
+        findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
+        findViewById(R.id.btn_find_me).setOnClickListener(this);
 
-        // retrieve instance of database
-        mDb = FirebaseFirestore.getInstance();
 
         // initialize the action / tool bar and the recycler view. (Older android feature).
         initSupportActionBar();
@@ -166,8 +167,17 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 newDeleteChatroomDialog();
             }
             break;
+            case R.id.btn_full_screen_map: {
+                retrieveUserLocation();
+            }
+            break;
+            case R.id.btn_find_me: {
+                setNewCamera();
+            }
+            break;
         }
     }
+
 
     // Green bar up top ..
     private void initSupportActionBar() {
@@ -288,10 +298,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         map.setMyLocationEnabled(true);
         googleMap = map;
 
-
-        // Currently Broken -- wip
-        //setCamera();
-
         // Gets the coordinates of where the user clicks. Currently only outputs the coords to sout only.
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -299,6 +305,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 System.out.println("Map clicked [" + point.latitude + " / " + point.longitude + "]");
             }
         });
+
 
     }
 
@@ -601,7 +608,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
                     // Use GeoPoint object to retrieve location
                     Location loc = task.getResult();
-                    if(loc!=null) {
+                    if (loc != null) {
                         GeoPoint geoPoint = new GeoPoint(loc.getLatitude(), loc.getLongitude());
 
                         // For debugging purposes
@@ -753,18 +760,35 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     // Sets the camera view on the map component to center on user location
-    private void setCamera() {
+    private void setNewCamera() {
 
         retrieveUserLocation();
-        // set bounds .. + 0.1 coordinate from user location in each direction
-        double bottomBounds = userPos.getGeoPoint().getLatitude() - 0.1;
-        double leftBounds = userPos.getGeoPoint().getLongitude() - 0.1;
-        double topBounds = userPos.getGeoPoint().getLatitude() + 0.1;
-        double rightBounds = userPos.getGeoPoint().getLongitude() + 0.1;
 
-        mapBoundary = new LatLngBounds(new LatLng(bottomBounds, leftBounds), new LatLng(topBounds, rightBounds));
+        if (userPosCamera != null) {
+            // set bounds .. + 0.1 coordinate from user location in each direction
+            double bottomBounds = userPosCamera.getGeoPoint().getLatitude() - 0.1;
+            double leftBounds = userPosCamera.getGeoPoint().getLongitude() - 0.1;
+            double topBounds = userPosCamera.getGeoPoint().getLatitude() + 0.1;
+            double rightBounds = userPosCamera.getGeoPoint().getLongitude() + 0.1;
 
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
+            mapBoundary = new LatLngBounds(new LatLng(bottomBounds, leftBounds), new LatLng(topBounds, rightBounds));
+
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
+        } else {
+
+            Log.d(TAG, " userPosCamera is null?..");
+            /*
+            double bottomBounds = userPosCamera.getGeoPoint().getLatitude() - 0.1;
+            double leftBounds = userPosCamera.getGeoPoint().getLongitude() - 0.1;
+            double topBounds = userPosCamera.getGeoPoint().getLatitude() + 0.1;
+            double rightBounds = userPosCamera.getGeoPoint().getLongitude() + 0.1;
+
+            mapBoundary = new LatLngBounds(new LatLng(bottomBounds, leftBounds), new LatLng(topBounds, rightBounds));
+
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
+
+             */
+        }
     }
 
 
@@ -775,18 +799,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     .collection(getString(R.string.collection_user_locations))
                     .document(FirebaseAuth.getInstance().getUid());
 
-            Log.d(TAG, "1");
+            Log.d(TAG, "test : 1");
 
             userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                    Log.d(TAG, "2");
+                    Log.d(TAG, "test : 2");
 
                     if (task.isSuccessful()) {
 
-                        Log.d(TAG, "3");
-                        userPos = task.getResult().toObject(UserLocation.class);
+                        userPosCamera = task.getResult().toObject(UserLocation.class);
+                        Log.d(TAG, "Printing userPosCamera, so not null .. : " + userPosCamera.toString());
                     }
                 }
             });
@@ -820,6 +844,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
 
     }
+
+
+    /**
+     *  Map animation for main activity methods
+     */
 
 
 

@@ -24,7 +24,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="66"
+            android:layout_weight="60"
             android:id="@+id/map_container">
 
             <com.google.android.gms.maps.MapView
@@ -45,6 +45,7 @@
                 android:id="@+id/btn_full_screen_map"/>
 
         </RelativeLayout>
+
         <Button
             android:id="@+id/fab_create_chatroom"
             android:layout_width="match_parent"
@@ -60,6 +61,14 @@
             android:layout_weight="3"
             android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
             android:text="@string/remove_chat_room" />
+
+        <Button
+            android:id="@+id/btn_find_me"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:background="@drawable/common_google_signin_btn_icon_light_normal_background"
+            android:text="@string/find_me" />
 
     </LinearLayout>
 
