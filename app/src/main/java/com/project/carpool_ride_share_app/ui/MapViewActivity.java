@@ -290,7 +290,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // Currently Broken -- wip
         //setCamera();
 
-
+        // Gets the coordinates of where the user clicks. Currently only outputs the coords to sout only.
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                System.out.println("Map clicked [" + point.latitude + " / " + point.longitude + "]");
+            }
+        });
 
     }
 

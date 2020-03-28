@@ -419,22 +419,3 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
