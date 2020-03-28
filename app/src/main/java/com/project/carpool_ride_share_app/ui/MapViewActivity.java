@@ -137,7 +137,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
 
         // Wip
-        //retrieveUserLocation();
+        retrieveUserLocation();
 
         // Set listeners for the creat and delete chatroom buttons
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
@@ -821,7 +821,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-   
+
 
 }
 
