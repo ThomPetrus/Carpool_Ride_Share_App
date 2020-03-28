@@ -3,6 +3,8 @@ package com.project.carpool_ride_share_app.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  *  Credit goes to CodingWithMitch. The Chat portion of his open source tutorial was used as a basis for the
  *  project.
@@ -17,6 +19,8 @@ public class Chatroom extends User implements Parcelable {
     private String title;
     private String chatroom_id;
     private String avatar;
+    private double latitude;
+    private double longitude;
 
     public String getAvatar() {
         return avatar;
@@ -26,10 +30,12 @@ public class Chatroom extends User implements Parcelable {
         this.avatar = avatar;
     }
 
-    public Chatroom(String title, String chatroom_id, String avatar) {
+    public Chatroom(String title, String chatroom_id, String avatar, double latitude, double longitude) {
         this.title = title;
         this.chatroom_id = chatroom_id;
         this.avatar = avatar;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public Chatroom() {
@@ -39,6 +45,9 @@ public class Chatroom extends User implements Parcelable {
     protected Chatroom(Parcel in) {
         title = in.readString();
         chatroom_id = in.readString();
+        this.avatar = in.readString();
+        this.latitude=in.readDouble();
+        this.longitude=in.readDouble();
     }
 
     public static final Creator<Chatroom> CREATOR = new Creator<Chatroom>() {
@@ -74,7 +83,26 @@ public class Chatroom extends User implements Parcelable {
         return "Chatroom{" +
                 "title='" + title + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", latitude='" + latitude + '\'' +
+                ", longitude='" + longitude + '\'' +
                 '}';
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     @Override

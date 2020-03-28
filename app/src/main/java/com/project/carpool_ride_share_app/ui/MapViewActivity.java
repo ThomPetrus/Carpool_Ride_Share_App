@@ -79,37 +79,49 @@ import static com.project.carpool_ride_share_app.Constants.ERROR_DIALOG_REQUEST;
 import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.project.carpool_ride_share_app.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
+/**
+ *  COSC 341 - Car pool and ride sharing app - Main activity
+ *
+ *  Credit to CodingWithMitch for the base implementation of this project.
+ *  Our group has refactored it, updated it to work with current android libraries and
+ *  further developed it. The basic chat-room portion of the project is derived from his
+ *  open source 2018 project and credit should be given where due.
+ */
+
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener,
         ChatroomRecyclerAdapter.ChatroomRecyclerClickListener {
     private MapView mMapView;
 
-    private static final String TAG = "LandingPage";
-
-
+    // Logs
+    private static final String TAG = "Main Map Activity";
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    private static final double NO_COORDS = 0;
 
+    // Chatroom related variables
     private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
     private ChatroomRecyclerAdapter mChatroomRecyclerAdapter;
     private RecyclerView mChatroomRecyclerView;
     private ListenerRegistration mChatroomEventListener;
+
+    // Map related variables
     private FirebaseFirestore mDb;
     private UserLocation userLocation;
     private GoogleMap googleMap;
     private ProgressBar mProgressBar;
     private RelativeLayout mapContainer;
-
-    //vars
-    private ArrayList<User> mUserList = new ArrayList<>();
-    private UserRecyclerAdapter mUserRecyclerAdapter;
-    private ArrayList<UserLocation> userLocations = new ArrayList<>();
     private LatLngBounds mapBoundary;
     private UserLocation userPos;
     protected UserLocation userPosCamera;
 
+    // User related variables
+    private ArrayList<User> mUserList = new ArrayList<>();
+    private UserRecyclerAdapter mUserRecyclerAdapter;
+    private ArrayList<UserLocation> userLocations = new ArrayList<>();
 
     // Used to verify permissions were granterd
     private boolean LocationPermissionsGranted = false;
+
     // Used in finding User location
     private FusedLocationProviderClient mFusedLocationClient;
 
@@ -127,7 +139,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // retrieve instance of database
         mDb = FirebaseFirestore.getInstance();
 
-        // Wip
+        // Retrieve current user details / location
         getUserDetails();
         retrieveUserLocation();
 
@@ -156,19 +168,19 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         findViewById(R.id.btn_find_me).setOnClickListener(this);
 
 
-        // initialize the action / tool bar and the recycler view. (Older android feature).
+        // initialize the action / tool bar and the recycler view.
         initSupportActionBar();
         initChatroomRecyclerView();
 
-
     }
 
+    // All on click handlers for the activity
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
 
             case R.id.fab_create_chatroom: {
-                newChatroomDialog();
+                newChatroomDialog(new LatLng(NO_COORDS, NO_COORDS));
             }
             break;
 
@@ -181,7 +193,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
             break;
             case R.id.btn_full_screen_map: {
-
+                // Change map animation depending on its current state
                 if (mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
                     mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
                     expandMapAnimation();
@@ -288,18 +300,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        mMapView.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mMapView.onStop();
-    }
-
-    @Override
     public void onMapReady(GoogleMap map) {
         map.addMarker(new MarkerOptions().position(new LatLng(49.882114, -119.477829)).title("Kelowna"));
 
@@ -319,10 +319,21 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onMapClick(LatLng point) {
                 System.out.println("Map clicked [" + point.latitude + " / " + point.longitude + "]");
+                newChatroomDialog(point);
             }
         });
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mMapView.onStart();
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mMapView.onStop();
     }
 
     @Override
@@ -346,12 +357,16 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mMapView.onLowMemory();
     }
 
-    // Self explanatory - Chat room object is in models directory. Standard java object.
-    private void buildNewChatroom(String chatroomName) {
+    /* Creating new chat rooms - by button or by map click   */
 
-        // Create object and set title
+    // Self explanatory - Chat room object is in models directory. Standard java object.
+    private void buildNewChatroom(String chatroomName, LatLng point) {
+
+        // Create object and set title - split in two for parcelable - easier
         final Chatroom chatroom = new Chatroom();
         chatroom.setTitle(chatroomName);
+        chatroom.setLatitude(point.latitude);
+        chatroom.setLongitude(point.longitude);
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
@@ -387,11 +402,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     // Prompt for creating a new chat room when button is pressed
-    private void newChatroomDialog() {
+    private void newChatroomDialog(final LatLng point) {
 
         // Title of alert
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter a chatroom name");
+        builder.setTitle("Enter a chatroom name:");
 
         // Set the input type to EditText view
         final EditText input = new EditText(this);
@@ -403,13 +418,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (!input.getText().toString().equals("")) {
-                    buildNewChatroom(input.getText().toString());
+                    buildNewChatroom(input.getText().toString(), point);
                 } else {
                     Toast.makeText(MapViewActivity.this, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
@@ -477,10 +492,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-
     // TODO  Write a method that checks if a rooms name is in use and then inform the user when trying to create it
 
-    // I wrote these to delete the chat rooms - They are basically the same in function as the add methods above.
+    /* Deleting existing chatrooms -- note that this currently leave a reference of them in the db - nbd could be a firebase feature */
     private void newDeleteChatroomDialog() {
 
         // Alert title
@@ -563,13 +577,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void navBackToMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, MapViewActivity.class);
         startActivity(intent);
     }
 
 
     /*
-     --------------------- Methods for retrieving current user location ----------------------------
+     --------------------- Methods for retrieving / storing current user location ----------------------------
      */
 
     // Step 1 - Create the UserLocation Object - See models directory
@@ -772,10 +786,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 }
             }
         }
-
     }
 
-    // Sets the camera view on the map component to center on user location
+    // Sets the camera view on the map component to center on user location - on button clicked
     private void setNewCamera() {
 
         retrieveUserLocation();
@@ -791,23 +804,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
             googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
         } else {
-
-            Log.d(TAG, " userPosCamera is null?..");
-            /*
-            double bottomBounds = userPosCamera.getGeoPoint().getLatitude() - 0.1;
-            double leftBounds = userPosCamera.getGeoPoint().getLongitude() - 0.1;
-            double topBounds = userPosCamera.getGeoPoint().getLatitude() + 0.1;
-            double rightBounds = userPosCamera.getGeoPoint().getLongitude() + 0.1;
-
-            mapBoundary = new LatLngBounds(new LatLng(bottomBounds, leftBounds), new LatLng(topBounds, rightBounds));
-
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary, 0));
-
-             */
+            Log.d(TAG, "userPosCamera is null");
         }
     }
 
-
+    // Used to retrieve the user location for the camera zoom option - Can't be called at start for some reason.
     private void retrieveUserLocation() {
 
         try {
@@ -815,18 +816,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     .collection(getString(R.string.collection_user_locations))
                     .document(FirebaseAuth.getInstance().getUid());
 
-            Log.d(TAG, "test : 1");
-
             userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                    Log.d(TAG, "test : 2");
-
                     if (task.isSuccessful()) {
 
                         userPosCamera = task.getResult().toObject(UserLocation.class);
-                        Log.d(TAG, "Printing userPosCamera, so not null .. : " + userPosCamera.toString());
+                        Log.d(TAG, "Printing userPosCamera : " + userPosCamera.toString());
                     }
                 }
             });
@@ -835,7 +832,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-
+    // Options menu - sign out and profile
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -861,10 +858,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-
-    /**
-     *  Map animation for main activity methods
-     */
+    /*  Map animation for main activity methods */
 
     private void expandMapAnimation() {
         ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
@@ -903,8 +897,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         recyclerAnimation.start();
         mapAnimation.start();
     }
-
-
 }
 
 
