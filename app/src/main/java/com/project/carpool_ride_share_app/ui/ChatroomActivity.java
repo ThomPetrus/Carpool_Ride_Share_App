@@ -91,6 +91,8 @@ public class ChatroomActivity extends AppCompatActivity implements
     private void getIncomingIntent() {
         if (getIntent().hasExtra(getString(R.string.intent_chatroom))) {
             mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_chatroom));
+
+
             setChatroomName();
             joinChatroom();
         }
@@ -294,6 +296,8 @@ public class ChatroomActivity extends AppCompatActivity implements
             joinChatroomRef.set(user); // Don't care about listening for completion.
         }
     }
+
+
 
     private void setChatroomName() {
         getSupportActionBar().setTitle(mChatroom.getTitle());

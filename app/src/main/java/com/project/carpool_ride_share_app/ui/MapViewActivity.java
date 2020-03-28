@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -60,6 +61,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.maps.android.clustering.ClusterManager;
 import com.project.carpool_ride_share_app.R;
 import com.project.carpool_ride_share_app.UserClient;
 import com.project.carpool_ride_share_app.adapters.ChatroomRecyclerAdapter;
@@ -68,6 +70,7 @@ import com.project.carpool_ride_share_app.models.Chatroom;
 import com.project.carpool_ride_share_app.models.MarkerCluster;
 import com.project.carpool_ride_share_app.models.User;
 import com.project.carpool_ride_share_app.models.UserLocation;
+import com.project.carpool_ride_share_app.util.MyClusterManagerRenderer;
 import com.project.carpool_ride_share_app.util.ViewWeightAnimationWrapper;
 
 import java.util.ArrayList;
@@ -132,6 +135,15 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     // Picked in the choose role activity
     String userRole;
+
+    // Used to create the chatroom markers on the map
+    private ClusterManager<MarkerCluster> clusterManager;
+    private MyClusterManagerRenderer clusterManagerRenderer;
+    private ArrayList<MarkerCluster> clusterMarkers = new ArrayList<>();
+
+    private Handler mHandler = new Handler();
+    private Runnable mRunnable;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,6 +283,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
             }
         });
+
+        // call here ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 
 
@@ -296,6 +310,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         if (checkMapServices()) {
             if (LocationPermissionsGranted) {
                 getChatrooms();
+                retrieveChatroomLocations();
             } else {
                 getLocationPermission();
             }
@@ -311,6 +326,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+
+            addMapMarkers();
+
             return;
         }
 
@@ -892,6 +910,116 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         recyclerAnimation.start();
         mapAnimation.start();
     }
+
+    /* Methods for creating the clickable markers for each chatroom on the map */
+
+
+    /*
+     Loops through all chat rooms and creates a marker for them
+  */
+    private void addMapMarkers() {
+        if (googleMap != null) {
+
+            if (clusterManager == null) {
+                clusterManager = new ClusterManager<MarkerCluster>(getApplicationContext(), googleMap);
+            }
+            if (clusterManagerRenderer == null) {
+                clusterManagerRenderer = new MyClusterManagerRenderer(
+                        this,
+                        googleMap,
+                        clusterManager
+                );
+                clusterManager.setRenderer(clusterManagerRenderer);
+            }
+
+            for (Chatroom chatroom  : mChatrooms) {
+
+                Log.d(TAG, "addMapMarkers - ChatRoom : location: " + chatroom.getLatitude()+ ", " + chatroom.getLongitude());
+
+                try {
+
+                    String snippet = chatroom.getTitle();
+                    int avatar = R.drawable.chat;
+
+                    // COULD BE CHANGED TO ACTUALLY ALLOW USER TO SET CHAT ROOM AVATARS..
+                    /*
+                    try {
+                        avatar = Integer.parseInt(userLocation.getUser().getAvatar());
+                    } catch (NumberFormatException e) {
+                        Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
+                    }
+                    */
+
+                    MarkerCluster newClusterMarker = new MarkerCluster(
+                            new LatLng(chatroom.getLatitude(), chatroom.getLongitude()),
+                            chatroom.getTitle(),
+                            snippet,
+                            avatar,
+                            chatroom
+                    );
+                    clusterManager.addItem(newClusterMarker);
+                    clusterMarkers.add(newClusterMarker);
+
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
+                }
+
+            }
+            clusterManager.cluster();
+
+            setNewCamera();
+        }
+    }
+
+/*
+ Can be made a million times simpler, just quickly rewrote it with chatroom objects - we're not updating the user locations,
+ So there's no need for a fair bit of this code, I just figured I'd get it done as proof of concept first.
+ */
+    private void retrieveChatroomLocations() {
+        try {
+            for (final MarkerCluster clusterMarker : clusterMarkers) {
+
+                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_chatrooms))
+                        .document(clusterMarker.getChatroom().getChatroom_id());
+
+                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+
+                            Chatroom current = task.getResult().toObject(Chatroom.class);
+
+                            // update the location
+                            for (int i = 0; i < clusterMarkers.size(); i++) {
+                                try {
+                                    if (clusterMarkers.get(i).getChatroom().getChatroom_id().equals(current.getChatroom_id())) {
+
+                                        LatLng updatedLatLng = new LatLng(
+                                                current.getLatitude(),
+                                                current.getLongitude()
+                                        );
+
+                                        clusterMarkers.get(i).setPosition(updatedLatLng);
+                                        clusterManagerRenderer.setUpdateMarker(clusterMarkers.get(i));
+                                    }
+
+
+                                } catch (NullPointerException e) {
+                                    Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
+        }
+    }
+
+
+
 }
 
 

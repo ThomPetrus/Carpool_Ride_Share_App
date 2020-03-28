@@ -10,6 +10,7 @@ public class MarkerCluster implements ClusterItem {
     private String snippet;
     private int picture;
     private User user;
+    private Chatroom chatroom;
 
     public MarkerCluster() {
 
@@ -21,6 +22,22 @@ public class MarkerCluster implements ClusterItem {
         this.snippet = text;
         this.picture = picture;
         this.user = user;
+    }
+
+    public MarkerCluster(LatLng pos, String title, String text, int picture, Chatroom chatroom) {
+        this.position = pos;
+        this.title = title;
+        this.snippet = text;
+        this.picture = picture;
+        this.chatroom = chatroom;
+    }
+
+    public Chatroom getChatroom() {
+        return chatroom;
+    }
+
+    public void setChatroom(Chatroom chatroom) {
+        this.chatroom = chatroom;
     }
 
     public LatLng getPosition() {

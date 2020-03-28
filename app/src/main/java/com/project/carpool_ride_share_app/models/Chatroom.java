@@ -14,7 +14,7 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 
-public class Chatroom extends User implements Parcelable {
+public class Chatroom implements Parcelable {
 
     private String title;
     private String chatroom_id;
