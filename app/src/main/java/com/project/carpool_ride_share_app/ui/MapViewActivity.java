@@ -16,6 +16,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -41,6 +42,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -66,6 +68,7 @@ import com.project.carpool_ride_share_app.models.Chatroom;
 import com.project.carpool_ride_share_app.models.MarkerCluster;
 import com.project.carpool_ride_share_app.models.User;
 import com.project.carpool_ride_share_app.models.UserLocation;
+import com.project.carpool_ride_share_app.util.ViewWeightAnimationWrapper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -94,6 +97,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private UserLocation userLocation;
     private GoogleMap googleMap;
     private ProgressBar mProgressBar;
+    private RelativeLayout mapContainer;
 
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
@@ -108,6 +112,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private boolean LocationPermissionsGranted = false;
     // Used in finding User location
     private FusedLocationProviderClient mFusedLocationClient;
+
+    // Map animation vars
+    private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
+    private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
+    private int mMapLayoutState = 0;
 
 
     @Override
@@ -131,11 +140,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         mMapView = (MapView) findViewById(R.id.user_list_map);
         mMapView.onCreate(mapViewBundle);
-
         mMapView.getMapAsync(this);
 
         mProgressBar = findViewById(R.id.progressBar);
         mChatroomRecyclerView = findViewById(R.id.chatrooms_recycler_view);
+        mapContainer = findViewById(R.id.map_container);
 
         // Get location
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -167,14 +176,21 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 newDeleteChatroomDialog();
             }
             break;
-            case R.id.btn_full_screen_map: {
-                retrieveUserLocation();
-            }
-            break;
             case R.id.btn_find_me: {
                 setNewCamera();
             }
             break;
+            case R.id.btn_full_screen_map: {
+
+                if (mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
+                    mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
+                    expandMapAnimation();
+                } else if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED) {
+                    mMapLayoutState = MAP_LAYOUT_STATE_CONTRACTED;
+                    contractMapAnimation();
+                }
+                break;
+            }
         }
     }
 
@@ -850,6 +866,43 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
      *  Map animation for main activity methods
      */
 
+    private void expandMapAnimation() {
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                50,
+                100);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mChatroomRecyclerView);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                50,
+                0);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+    }
+
+    private void contractMapAnimation() {
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                100,
+                50);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mChatroomRecyclerView);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                0,
+                50);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+    }
 
 
 }
