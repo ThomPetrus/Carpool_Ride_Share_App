@@ -3,7 +3,7 @@
     <string name="google_API_key">AIzaSyBdMBkmG-cxqS4EnTsEKMfM7QgkBoRh0-U</string>
 
     <!-- Main Activity String Resources -->
-    <string name="app_name">Carpool_Ride_Share_App</string>
+    <string name="app_name">Carpool</string>
     <string name="welcome_text">Welcome!</string>
 
     <!-- Registration String Resources -->

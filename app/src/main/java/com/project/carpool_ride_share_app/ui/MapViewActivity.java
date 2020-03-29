@@ -192,6 +192,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         userRole = getIntent().getExtras().getString("role");
         clusterReset();
+
     }
 
     // All on click handlers for the activity
@@ -370,8 +371,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onMapReady(GoogleMap map) {
-        map.addMarker(new MarkerOptions().position(new LatLng(49.882114, -119.477829)).title("Kelowna"));
-
         // Was not necessary initially for me to perform checks here again, but can't hurt.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -385,7 +384,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         googleMap.setOnMarkerClickListener(clusterManager);
 
-        // Gets the coordinates of where the user clicks. Currently only outputs the coords to sout only.
+        // Gets the coordinates of where the user clicks.
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
@@ -395,12 +394,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         });
 
         clusterReset();
-
     }
 
     @Override
     protected void onStart() {
         clusterReset();
+        setNewCamera();
         super.onStart();
         mMapView.onStart();
     }

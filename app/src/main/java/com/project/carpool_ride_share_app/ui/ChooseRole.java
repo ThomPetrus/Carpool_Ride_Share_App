@@ -13,6 +13,11 @@ public class ChooseRole extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            this.getSupportActionBar().hide();
+        } catch (NullPointerException e){
+            System.out.println("Couldn't hide action bar.");
+        }
         setContentView(R.layout.activity_choose_role);
     }
 

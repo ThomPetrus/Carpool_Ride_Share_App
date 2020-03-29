@@ -53,6 +53,11 @@ public class LoginActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            this.getSupportActionBar().hide();
+        } catch (NullPointerException e){
+            System.out.println("Couldn't hide action bar.");
+        }
         setContentView(R.layout.activity_login);
 
         // Get references to views
