@@ -339,7 +339,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -381,6 +380,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         map.setMyLocationEnabled(true);
         googleMap = map;
+
+        map.getUiSettings().setMapToolbarEnabled(false);
+        map.getUiSettings().setMyLocationButtonEnabled(false);
 
         googleMap.setOnMarkerClickListener(clusterManager);
 
