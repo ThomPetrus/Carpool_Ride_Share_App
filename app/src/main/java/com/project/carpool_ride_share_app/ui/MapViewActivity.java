@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -181,7 +182,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Set listeners for the creat and delete chatroom buttons
-        findViewById(R.id.btn_show_chatrooms).setOnClickListener(this);
         findViewById(R.id.btn_delete_chatroom).setOnClickListener(this);
         findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
         findViewById(R.id.btn_find_me).setOnClickListener(this);
@@ -192,19 +192,20 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         initChatroomRecyclerView();
 
         userRole = getIntent().getExtras().getString("role");
-        clusterReset();
 
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                showChatroomHelper();
+                setNewCamera();
+            }
+        }, 5000);   //5 seconds
     }
 
     // All on click handlers for the activity
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-
-            case R.id.btn_show_chatrooms: {
-                showChatroomHelper(view);
-            }
-            break;
 
             case R.id.btn_delete_chatroom: {
                 newDeleteChatroomDialog();
@@ -228,7 +229,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    public void showChatroomHelper(View view) {
+    public void showChatroomHelper() {
 
         /**
          *  Such a bunch of spaghetti with a band-aid, but is what it is at this point.
@@ -246,8 +247,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         if (markerState == MARKER_STATE_VISIBLE) {
             markerState = MARKER_STATE_NOT_VISIBLE;
-            // remove button
-            view.setVisibility(View.GONE);
 
             //set map weight to occupy newly available screen space
             if (mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED) {
@@ -338,7 +337,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
             }
         });
-
     }
 
 
@@ -401,7 +399,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     protected void onStart() {
         clusterReset();
-        setNewCamera();
         super.onStart();
         mMapView.onStart();
     }
@@ -897,6 +894,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
                         userPosCamera = task.getResult().toObject(UserLocation.class);
                         Log.d(TAG, "Printing userPosCamera : " + userPosCamera.toString());
+
                     }
                 }
             });
