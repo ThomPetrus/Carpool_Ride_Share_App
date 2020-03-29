@@ -30,6 +30,7 @@ import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -292,6 +293,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // Recycler view initialization
     private void initChatroomRecyclerView() {
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this);
+        mChatroomRecyclerView.addItemDecoration(new DividerItemDecoration(mChatroomRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
         mChatroomRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
