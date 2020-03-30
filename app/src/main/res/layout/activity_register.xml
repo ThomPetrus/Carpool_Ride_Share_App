@@ -62,7 +62,7 @@
                     android:fontFamily="@font/stint_ultra_expanded"
                     android:hint="@string/confirm_password"
                     android:inputType="textPassword"
-                    android:textColor="#00020000" />
+                    android:textColor="@color/Black" />
 
 
                 <Button
