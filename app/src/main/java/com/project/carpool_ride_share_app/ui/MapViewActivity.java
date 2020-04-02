@@ -1,21 +1,5 @@
 package com.project.carpool_ride_share_app.ui;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
@@ -27,14 +11,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-
 import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
@@ -46,6 +22,24 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
@@ -61,8 +55,6 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.maps.android.clustering.Cluster;
-import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.project.carpool_ride_share_app.R;
 import com.project.carpool_ride_share_app.UserClient;
@@ -105,6 +97,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     // Chatroom related variables
     private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
+    private ArrayList<String> ChatroomNames = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
     private ChatroomRecyclerAdapter mChatroomRecyclerAdapter;
     private RecyclerView mChatroomRecyclerView;
@@ -306,6 +299,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // Collection is like a relation - though firebase is noSQL
         CollectionReference chatroomsCollection = mDb.collection(getString(R.string.collection_chatrooms));
 
+
         mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
@@ -442,6 +436,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private void buildNewChatroom(String chatroomName, LatLng point) {
 
         // Create object and set title - split in two for parcelable - easier
+
+        if (checkName(chatroomName)) {//if the chatroom already exists, don't create it
+            Toast.makeText(getApplicationContext(), "Name Taken", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         final Chatroom chatroom = new Chatroom();
         chatroom.setTitle(chatroomName);
         chatroom.setLatitude(point.latitude);
@@ -472,6 +472,24 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 }
             }
         });
+    }
+
+    private boolean checkName(String name) {
+        Boolean value = false;
+        CollectionReference chatroomsCollection = mDb.collection(getString(R.string.collection_chatrooms));
+
+        mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                for (QueryDocumentSnapshot dc : queryDocumentSnapshots) {
+                    Chatroom chatroom = dc.toObject(Chatroom.class);
+                    ChatroomNames.add(chatroom.getTitle());//add all the names of chatrooms in db to a list
+                    }
+                }
+        });
+        if (ChatroomNames.contains(name))//if the new name is in the list, that means it alredy exists
+            value = true;
+        ChatroomNames.clear();//empty the list
+        return value;
     }
 
     // Move into newly created Chat room
