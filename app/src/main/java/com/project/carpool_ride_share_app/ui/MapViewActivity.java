@@ -913,8 +913,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     if (task.isSuccessful()) {
 
                         userPosCamera = task.getResult().toObject(UserLocation.class);
-                        Log.d(TAG, "Printing userPosCamera : " + userPosCamera.toString());
-
                     }
                 }
             });
